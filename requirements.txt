@@ -1,0 +1,4 @@
+required vcpkg packages/libraries:
+
+vcpkg install sqlitecpp
+vcpkg install gtest
