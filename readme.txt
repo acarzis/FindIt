@@ -4,8 +4,8 @@ FindIt - A C++ re-implementation of my EnumerateFolders C# project
 
 This project is a work in progress. A lot of work is still required. 
 
-Goal: I want a Windows file search/indexer that is quick, supports all my network drives, does not require me searching by each folder/drive individually, 
-and can track drive space usage by document type, folder, drive.
+Goal: I want a Windows file search/indexer that is quick, supports all my network drives, does not require me searching by each folder/drive 
+individually, and can track drive space usage by document type, folder, drive.
 
 Changes from EnumerateFolders project: 
 
@@ -19,3 +19,5 @@ EnumerateFolders was too slow in indexing my data. I did not do an analysis as t
 db 'hitting' was the issue. Regardless, this new approach should be better. Furthermore, I am putting more effort in doing a better job testing and running performance metrics.
 
 
+My next task is to make changes such that the size of a folder is being computed while indexing is occuring. This will allow for immediate folder size 
+retrieval by clients (GUI, etc ..).
