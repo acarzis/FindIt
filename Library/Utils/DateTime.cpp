@@ -8,6 +8,9 @@
 using namespace std;
 
 
+// future rteference:
+//    https://www.cppstories.com/2024/chrono_dates_zones/#:~:text=In%20this%20blog%20post%2C%20we%20will%20explore%20handling,into%20account%20daylight%20saving%20time%20changes%20as%20well.
+
 void DateTime::Now()
 {
     // auto const time = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());    

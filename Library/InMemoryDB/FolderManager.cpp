@@ -71,8 +71,11 @@ void FolderManager::AddChildFolder(string folderfullpath, string subfoldername)
 	if (it != _folderlist.end())
 	{
 		list<string> temp = _folderlist[hash];
-		temp.push_back(subfolderhash);
-		_folderlist[hash] = temp;
+		if (std::find(temp.begin(), temp.end(), subfolderhash) == temp.end())
+		{
+			temp.push_back(subfolderhash);
+			_folderlist[hash] = temp;
+		}
 	}
 	else
 	{
@@ -83,10 +86,8 @@ void FolderManager::AddChildFolder(string folderfullpath, string subfoldername)
 }
 
 
-void FolderManager::EnumerateFolders(string fullpath, list<string>& folderlist)
+void FolderManager::EnumerateFolders(string fullpath, list<string>& folderlistfullpath)
 {
-	// TO DO:   folderlist must have full path of each folder
-
 	string hash = SHA256HashString(fullpath);
 	auto it = _folderlist.find(hash);
 
@@ -102,12 +103,12 @@ void FolderManager::EnumerateFolders(string fullpath, list<string>& folderlist)
 			// subfoldername = sfname.filename().string();
 
 			fs::path absolutePath = boost::filesystem::absolute(fs::path(subfoldername), fs::path(fullpath));
-			folderlist.push_back(absolutePath.string());			// subfoldername);
+			folderlistfullpath.push_back(absolutePath.string());			// subfoldername);
 		}
 	}
 }
 
-void FolderManager::EnumerateFiles(string fullpath, list<string>& filelist)
+void FolderManager::EnumerateFiles(string fullpath, list<string>& filelistfullpath)
 {
 	// TO DO:   filelist must have full path of each folder
 
@@ -122,7 +123,46 @@ void FolderManager::EnumerateFiles(string fullpath, list<string>& filelist)
 			string filename = Files::GetInstance().GetFileName(fullpathhash);
 
 			fs::path absolutePath = boost::filesystem::absolute(fs::path(filename), fs::path(fullpath));
-			filelist.push_back(absolutePath.string());						// filename);
+			filelistfullpath.push_back(absolutePath.string());						// filename);
 		}
 	}
+}
+
+int64_t FolderManager::ComputeParentFolderSize(string fullpath)
+{
+	int64_t size = 0;
+	fs::path folder(fullpath);
+	string parentpath = folder.parent_path().string();
+
+	string hash = SHA256HashString(parentpath);
+	auto it = _folderlist.find(hash);
+	if (it != _folderlist.end())
+	{
+		list<string> subfolders = it->second;
+		for (string subfoldernamehash : subfolders)
+		{
+			string subfoldername = Folders::GetInstance().GetFullPath(subfoldernamehash);
+			fs::path absolutePath = boost::filesystem::absolute(fs::path(subfoldername), fs::path(fullpath));
+
+			Folder foldertemp;
+			Folders::GetInstance().FolderExists(absolutePath.string(), foldertemp);
+			size += foldertemp.GetFolderSize();
+		}
+
+		auto it2 = _filelist.find(hash);
+		if (it2 != _filelist.end())
+		{
+			list<string> files = it2->second;
+			for (string filefullpathhash : files)
+			{
+				fs::path parentfolder(parentpath);
+				fs::path absolutePath = boost::filesystem::absolute(Files::GetInstance().GetFileName(filefullpathhash), parentfolder);
+
+				File temp(absolutePath.string(), 0, "");
+				Files::GetInstance().GetFile(absolutePath.string(), temp);
+				size += temp.GetFilesize();
+			}
+		}
+	}
+	return size;
 }

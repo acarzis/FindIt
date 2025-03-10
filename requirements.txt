@@ -1,4 +1,7 @@
 required vcpkg packages/libraries:
 
-vcpkg install sqlitecpp
+vcpkg install boost
+vcpkg install cryptopp
+vcpkg install date
 vcpkg install gtest
+vcpkg install sqlitecpp

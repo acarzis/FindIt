@@ -48,6 +48,7 @@ void Folders::AddFolder(string fullpath, string category, int64_t foldersize)
 	std::set<Folder>::const_iterator it = _folders.find(temp);
 	if (it == _folders.end())
 	{
+		FolderManager::GetInstance().AddChildFolder(path, name);
 		_folders.insert(temp);
 	}
 }
@@ -111,6 +112,7 @@ void Folders::AddFolderDetails(string fullpath, string category, int64_t folders
 	}
 }
 
+[[deprecated("Too Slow")]]
 int64_t Folders::ComputeFolderSize(string fullpath)
 {
 	// Performed recursively, accesses file system if need be
@@ -123,7 +125,6 @@ int64_t Folders::ComputeFolderSize(string fullpath)
 	for (string folder : folderlist)
 	{
 		string category;
-		int64_t foldersize;
 		DateTime lastchecked, lastmodified;
 
 		result += ComputeFolderSize(folder);
@@ -165,8 +166,6 @@ int64_t Folders::ComputeFolderSize(string fullpath)
 	return result;
 }
 
-
-// WORK IN PROGRESS
 int64_t Folders::ComputeFolderSizeInternally(string fullpath)
 {
 	// Performed recursively - Does not enumerate file system
@@ -180,12 +179,11 @@ int64_t Folders::ComputeFolderSizeInternally(string fullpath)
 	{
 		FolderManager::GetInstance().EnumerateFolders(fullpath, folderlist);
 	}
-	catch (exception &e)  {}
+	catch (exception)  {}
 
 	for (string folder : folderlist)
 	{
 		string category;
-		int64_t foldersize;
 		DateTime lastchecked, lastmodified;
 
 		result += ComputeFolderSizeInternally(folder);
@@ -198,7 +196,7 @@ int64_t Folders::ComputeFolderSizeInternally(string fullpath)
 	{
 		FolderManager::GetInstance().EnumerateFiles(fullpath, filelist);
 	}
-	catch (exception& e) {}
+	catch (exception) {}
 
 	for (string file : filelist)
 	{

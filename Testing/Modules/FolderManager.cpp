@@ -65,3 +65,41 @@ TEST(FolderManager, EnumerateFolders)
 TEST(FolderManager, EnumerateFiles)
 {
 }
+
+
+TEST(FolderManager, ComputeParentFolderSize)
+{
+	Folders& f = Folders::GetInstance();
+	f.AddFolder("D:\\Images30", "", 35000);
+	f.AddFolder("D:\\Images30\\child1", "", 20000);
+	f.AddFolder("D:\\Images30\\child2", "", 21000);
+	f.AddFolder("D:\\Images30\\child3", "", 22000);
+	f.AddFolder("D:\\Images30\\child4", "", 23000);
+
+	Files& files = Files::GetInstance();
+	files.AddFile("D:\\Images30", "testfile1.txt", "", "", 10000);		// calls FolderManager::AddFile()
+
+	FolderManager& fm = FolderManager::GetInstance();
+	int64_t size = fm.ComputeParentFolderSize("D:\\Images30\\child1");
+	ASSERT_EQ(size, 96000);
+}
+
+TEST(FolderManager, AddFolderDuplicateCheck)
+{
+	Folders& f = Folders::GetInstance();
+	f.AddFolder("D:\\Images31\\child1", "", 20000);
+	f.AddFolder("D:\\Images31\\child1", "", 21000);
+
+	FolderManager& fm = FolderManager::GetInstance();
+	ASSERT_EQ(1, fm.GetFolderCount("D:\\Images31"));
+}
+
+TEST(FolderManager, AddFileDuplicateCheck)
+{
+	Files& files = Files::GetInstance();
+	files.AddFile("D:\\Images31", "testfile1.txt", "", "", 0);		// calls FolderManager::AddFile()
+	files.AddFile("D:\\Images31", "testfile1.txt", "", "", 0);
+
+	FolderManager& fm = FolderManager::GetInstance();
+	ASSERT_EQ(1, fm.GetFileCount("D:\\Images31"));
+}

@@ -21,7 +21,6 @@ private:
 	map<string, list<string>> _folderlist;					// folderfullpath hash - subfoldername hash --> subfolder fullpath hash 
 
 
-
 public:
 	static FolderManager& GetInstance();
 	int64_t GetFolderCount(string folderfullpath);
@@ -29,6 +28,7 @@ public:
 
 	void AddFile(string folderfullpath, string filename);
 	void AddChildFolder(string folderfullpath, string subfoldername);
-	void EnumerateFolders(string fullpath, list<string>& folderlist);
-	void EnumerateFiles(string fullpath, list<string>& filelist);
+	void EnumerateFolders(string fullpath, list<string>& folderlistfullpath);
+	void EnumerateFiles(string fullpath, list<string>& filelistfullpath);
+	int64_t ComputeParentFolderSize(string fullpath);
 };

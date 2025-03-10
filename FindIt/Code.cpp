@@ -46,7 +46,7 @@ void Init()
     */
 
     // testing code: 
-    toscanqueue.AddPathToScanQueue("C:\\Users\\Default", 2);      // TO DO: create priority enums 
+    toscanqueue.AddPathToScanQueue("C:\\Users\\Public", 2);      // TO DO: create priority enums 
     // toscanqueue.AddPathToScanQueue("c:\\AMD\\AMD-Software-Adrenalin-Edition-24.2.1-combined-MinimalSetup-240223_web", 2);      // TO DO: create priority enums 
 
 
@@ -113,21 +113,30 @@ void TimerJob()
             cout << "After: " << after1.ToUTCString() << " Folder size: " << fldrsize << endl;
             */
 
-            fldrsize = Folders::GetInstance().ComputeFolderSizeInternally("C:\\Users\\Default");
+            fldrsize = Folders::GetInstance().ComputeFolderSizeInternally("C:\\Users\\Public");
             DateTime after1;
             cout << "After: " << after1.ToUTCString() << " Folder size: " << fldrsize << endl;
 
 
             DateTime after2;
-            cout << "Number of folders: " << FolderManager::GetInstance().GetFolderCount("C:\\Users\\Default") << endl;
+            cout << "Number of folders: " << FolderManager::GetInstance().GetFolderCount("C:\\Users\\Public") << endl;
             cout << "After2: " << after2.ToUTCString() << endl;
             DateTime after3;
-            cout << "Number of files: " << FolderManager::GetInstance().GetFileCount("C:\\Users\\Default") << endl;
+            cout << "Number of files: " << FolderManager::GetInstance().GetFileCount("C:\\Users\\Public") << endl;
             cout << "After3: " << after3.ToUTCString() << endl;
 
-            Folders::GetInstance().GetFolderDetails("C:\\Users\\Default", foldercategory, fldrsize, lastchecked, lastmodified);
-            cout << "Folder " << "C:\\Users\\Default" << " size: " << fldrsize << " last checked: " << lastchecked.ToUTCString()
+            Folders::GetInstance().GetFolderDetails("C:\\Users\\Public", foldercategory, fldrsize, lastchecked, lastmodified);
+            cout << "Folder " << "C:\\Users\\Public" << " size: " << fldrsize << " last checked: " << lastchecked.ToUTCString()
                 << " last modified: " << lastmodified.ToUTCString() << endl;
+
+            FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Libraries");
+            FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Account Pictures");
+            FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Desktop");
+            FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Documents");
+            FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Music");
+            FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Pictures");
+            FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Videos");
+            cout << "ComputeParentFolderSize: " << FolderManager::GetInstance().ComputeParentFolderSize("C:\\Users\\Public\\AccountPictures\\S-1-5-21-3356187684-364531250-1886181994-1002") << endl;
 
             return;
 

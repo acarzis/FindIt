@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
+#include <boost/filesystem.hpp>
 #include <list>
 #include "../../Library/InMemoryDB/Categories.h"
-#include <boost/filesystem.hpp>
 #include "../../Library/Entities/File.h"
 #include "../../Library/InMemoryDB/Folders.h"
 #include "../../Library/InMemoryDB/Files.h"

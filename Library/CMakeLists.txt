@@ -179,18 +179,16 @@ find_package(date CONFIG REQUIRED)
 
 link_directories(${BOOST_LIBRARY_DIR})
 
-
 list(APPEND BUILD_FILES "Entities/Drive.cpp" "Entities/Folder.cpp" "Entities/Category.cpp" "Entities/ToScanQueueItem.cpp") 
-# list(APPEND BUILD_FILES "Entities/File.cpp") 
-list(APPEND BUILD_FILES "InMemoryDB/Drives.cpp" "InMemoryDB/Categories.cpp" ) 
+list(APPEND BUILD_FILES "Entities/File.cpp") 
+list(APPEND BUILD_FILES "InMemoryDB/Drives.cpp" "InMemoryDB/Categories.cpp" "InMemoryDB/FolderManager.h" "InMemoryDB/FolderManager.cpp") 
 list(APPEND BUILD_FILES "InMemoryDB/ToScanQueue.cpp" "InMemoryDB/Drives.cpp" "InMemoryDB/Files.cpp" "InMemoryDB/Folders.cpp")
-list(APPEND BUILD_FILES "Utils/DateTime.cpp" "Utils/Encryption.cpp")
-add_library (Library ${BUILD_FILES} "Db/Operations.cpp" "Utils/DriveOperations.cpp" "Utils/DriveOperations.h" "Entities/File.cpp" "InMemoryDB/FolderManager.h" "InMemoryDB/FolderManager.cpp")
+list(APPEND BUILD_FILES "Utils/DateTime.cpp" "Utils/Encryption.cpp" "Utils/DriveOperations.cpp" "Utils/DriveOperations.h")
+add_library (Library ${BUILD_FILES} "Db/Operations.cpp" )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Library PROPERTY CXX_STANDARD 20)
 endif()
-
 
 target_include_directories(Library PUBLIC ${PKG_PACKAGES_LOCATION}/sqlite3_x64-windows/include)
 target_include_directories(Library PUBLIC ${PKG_PACKAGES_LOCATION}/sqlitecpp_x64-windows/include)
@@ -198,7 +196,6 @@ target_include_directories(Library PUBLIC ${PKG_PACKAGES_LOCATION}/cryptopp_x64-
 target_include_directories(Library PUBLIC ${PKG_PACKAGES_LOCATION}/boost-filesystem_x64-windows/include)
 target_include_directories(Library PUBLIC ${PKG_PACKAGES_LOCATION}/boost-system_x64-windows/include)
 target_link_libraries(Library sqlite3 SQLiteCpp cryptopp::cryptopp Boost::boost Boost::filesystem date::date date::date-tz)
-
 
 target_include_directories(Library PUBLIC 
 	# this is insanity. there must be an alternative approach.
