@@ -12,7 +12,6 @@ TEST(DateTime, DateTestClass)
 
     DateTime nowdt;
     string tnowdt = nowdt.AscTime();
-
+    string tnowdt2 = nowdt.ToUTCString();   // passes visual inspection
     ASSERT_EQ(tnow, tnowdt);
 }
-

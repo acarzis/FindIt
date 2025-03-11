@@ -19,18 +19,13 @@ void DateTime::Now()
     std::chrono::system_clock::duration d = time.time_since_epoch();
     std::chrono::system_clock::time_point tp(d);
     std::time_t now_time_t = std::chrono::system_clock::to_time_t(tp);  
-    std::tm *tm = gmtime(&now_time_t); // convert time since epoch to UTC time
-    _year = tm->tm_year;
+    std::tm *tm = gmtime(&now_time_t);          // convert time since epoch to UTC time, tm->tm_isdst always 0 for gmtime()
+    _year = tm->tm_year;                        // current year - 1900
     _month = tm->tm_mon+1;
     _day = tm->tm_mday;
     _hour = tm->tm_hour;
     _min = tm->tm_min;
     _sec = tm->tm_sec;
-
-    // string ttt = std::format("{:%Y-%m-%d %X}", time);
-    // example:  2025-02-20 16:51:09
-
-    // return std::format("{:%Y-%m-%d %X}", time);
 }
 
 DateTime::DateTime(string datetimestring)
@@ -60,11 +55,12 @@ string DateTime::ToUTCString() const
 
     std::tm tm{};
     tm.tm_year = _year;
-    tm.tm_mon = _month;
+    tm.tm_mon = _month - 1;
     tm.tm_mday = _day;
     tm.tm_hour = _hour;
     tm.tm_min = _min;
     tm.tm_sec = _sec;
+    tm.tm_isdst = -1;
     std::time_t thetime = std::mktime(&tm);
     char result[100];
 
@@ -86,6 +82,7 @@ string DateTime::AscTime() const
     tm.tm_hour = _hour;
     tm.tm_min = _min;
     tm.tm_sec = _sec;
+    tm.tm_isdst = -1;
     std::time_t thetime = std::mktime(&tm);
     return asctime(std::gmtime(&thetime));
 }
@@ -99,6 +96,7 @@ time_t DateTime::GetTime_t() const
     utc.tm_hour = _hour;
     utc.tm_min = _min;
     utc.tm_sec = _sec;
+    utc.tm_isdst = -1;
     std::time_t thetime = mktime(&utc);
     return thetime;
 }
@@ -112,6 +110,7 @@ bool DateTime::operator> (const DateTime& right) const
     utc.tm_hour = _hour;
     utc.tm_min = _min;
     utc.tm_sec = _sec;
+    utc.tm_isdst = -1;
     std::time_t thetime = mktime(&utc);
 
     std::time_t righttime_t  = right.GetTime_t();
@@ -131,6 +130,7 @@ bool DateTime::operator>= (const DateTime& right) const
     utc.tm_hour = _hour;
     utc.tm_min = _min;
     utc.tm_sec = _sec;
+    utc.tm_isdst = -1;
     std::time_t thetime = mktime(&utc);
 
     std::time_t righttime_t = right.GetTime_t();
