@@ -184,7 +184,7 @@ list(APPEND BUILD_FILES "Entities/File.cpp")
 list(APPEND BUILD_FILES "InMemoryDB/Drives.cpp" "InMemoryDB/Categories.cpp" "InMemoryDB/FolderManager.h" "InMemoryDB/FolderManager.cpp") 
 list(APPEND BUILD_FILES "InMemoryDB/ToScanQueue.cpp" "InMemoryDB/Drives.cpp" "InMemoryDB/Files.cpp" "InMemoryDB/Folders.cpp")
 list(APPEND BUILD_FILES "Utils/DateTime.cpp" "Utils/Encryption.cpp" "Utils/DriveOperations.cpp" "Utils/DriveOperations.h")
-add_library (Library ${BUILD_FILES} "Db/Operations.cpp" )
+add_library (Library ${BUILD_FILES} "Db/Operations.cpp"  "Utils/Registry.h" "Utils/Registry.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Library PROPERTY CXX_STANDARD 20)
@@ -195,7 +195,7 @@ target_include_directories(Library PUBLIC ${PKG_PACKAGES_LOCATION}/sqlitecpp_x64
 target_include_directories(Library PUBLIC ${PKG_PACKAGES_LOCATION}/cryptopp_x64-windows/include)
 target_include_directories(Library PUBLIC ${PKG_PACKAGES_LOCATION}/boost-filesystem_x64-windows/include)
 target_include_directories(Library PUBLIC ${PKG_PACKAGES_LOCATION}/boost-system_x64-windows/include)
-target_link_libraries(Library sqlite3 SQLiteCpp cryptopp::cryptopp Boost::boost Boost::filesystem date::date date::date-tz)
+target_link_libraries(Library sqlite3 SQLiteCpp cryptopp::cryptopp Boost::boost Boost::filesystem date::date date::date-tz user32 Mpr)
 
 target_include_directories(Library PUBLIC 
 	# this is insanity. there must be an alternative approach.

@@ -166,6 +166,7 @@ int64_t Folders::ComputeFolderSize(string fullpath)
 	return result;
 }
 
+[[deprecated("Slow")]]
 int64_t Folders::ComputeFolderSizeInternally(string fullpath)
 {
 	// Performed recursively - Does not enumerate file system

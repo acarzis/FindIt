@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include "../../Library/Utils/DriveOperations.h"
 
+using namespace std;
+
 TEST(DriveOperations, EnumerateFolders)
 {
 	list<string> folderlist;

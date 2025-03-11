@@ -4,7 +4,9 @@
 #include <chrono> 
 #include <format> 
 
-using namespace std;
+// date libraries:
+// https://github.com/HowardHinnant/date
+
 
 class DateTime
 {
@@ -20,9 +22,9 @@ class DateTime
 public:
 	DateTime();
 	DateTime(time_t);
-	DateTime(string datetimestring);
-	string ToUTCString() const;
-	string AscTime() const;
+	DateTime(std::string datetimestring);
+	std::string ToUTCString() const;
+	std::string AscTime() const;
 	bool operator> (const DateTime& right) const;
 	bool operator>= (const DateTime& right) const;
 };

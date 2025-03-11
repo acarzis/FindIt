@@ -2,6 +2,7 @@
 #include <string>
 #include "../../Library/Utils/DateTime.h"
 
+using namespace std;
 
 TEST(DateTime, DateTestClass)
 {

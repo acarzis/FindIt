@@ -1,4 +1,6 @@
 #include "Code.h"
+#include <iostream>
+#include <boost/filesystem.hpp>
 #include "../Library/Entities/Category.h"
 #include "../Library/Entities/Folder.h"
 #include "../Library/Utils/DateTime.h"
@@ -6,11 +8,10 @@
 #include "../Library/InMemoryDB/ToScanQueue.h"
 #include "../Library/InMemoryDB/Categories.h"
 #include "../Library/InMemoryDB/Folders.h"
-#include <boost/filesystem.hpp>
 #include "../Library/Utils/DriveOperations.h"
 #include "../Library/InMemoryDB/Files.h"
-#include <iostream>
 #include "../Library/InMemoryDB/FolderManager.h"
+
 
 using namespace std;
 namespace fs = boost::filesystem;
@@ -19,11 +20,13 @@ list<Drive> driveList;
 list<Category> categoryList;
 list<tuple<string, string>> categoryExtensions;             // extension, category name
 list<tuple<string, string>> categoryPaths;                  // fullpath, category name
-
+std::vector<std::string> drives;                            // drives on the PC, includes network/mapped drives
 
 
 void Init()
 {
+    drives = DriveOperations::getListOfDrives();
+
     Drives d = Drives::GetInstance();
     d.Load();
     d.GetDriveList(driveList);
@@ -46,7 +49,7 @@ void Init()
     */
 
     // testing code: 
-    toscanqueue.AddPathToScanQueue("C:\\Users\\Public", 2);      // TO DO: create priority enums 
+    toscanqueue.AddPathToScanQueue(DriveOperations::UNCPath("Z:"), 2);      // TO DO: create priority enums 
     // toscanqueue.AddPathToScanQueue("c:\\AMD\\AMD-Software-Adrenalin-Edition-24.2.1-combined-MinimalSetup-240223_web", 2);      // TO DO: create priority enums 
 
 
@@ -101,6 +104,10 @@ void TimerJob()
 
         if (fullpath == "")
         {
+            // test code 
+
+            string path = DriveOperations::UNCPath("Z:");
+
             cout << "nothing to process" << endl;
 
             DateTime before1;
@@ -113,22 +120,23 @@ void TimerJob()
             cout << "After: " << after1.ToUTCString() << " Folder size: " << fldrsize << endl;
             */
 
-            fldrsize = Folders::GetInstance().ComputeFolderSizeInternally("C:\\Users\\Public");
+            fldrsize = Folders::GetInstance().ComputeFolderSizeInternally(path);
             DateTime after1;
             cout << "After: " << after1.ToUTCString() << " Folder size: " << fldrsize << endl;
 
-
             DateTime after2;
-            cout << "Number of folders: " << FolderManager::GetInstance().GetFolderCount("C:\\Users\\Public") << endl;
+            cout << "Number of folders: " << FolderManager::GetInstance().GetFolderCount(path) << endl;
             cout << "After2: " << after2.ToUTCString() << endl;
+
             DateTime after3;
-            cout << "Number of files: " << FolderManager::GetInstance().GetFileCount("C:\\Users\\Public") << endl;
+            cout << "Number of files: " << FolderManager::GetInstance().GetFileCount(path) << endl;
             cout << "After3: " << after3.ToUTCString() << endl;
 
-            Folders::GetInstance().GetFolderDetails("C:\\Users\\Public", foldercategory, fldrsize, lastchecked, lastmodified);
-            cout << "Folder " << "C:\\Users\\Public" << " size: " << fldrsize << " last checked: " << lastchecked.ToUTCString()
+            Folders::GetInstance().GetFolderDetails(path, foldercategory, fldrsize, lastchecked, lastmodified);
+            cout << "Folder " << "C:\\Users\\acarz" << " size: " << fldrsize << " last checked: " << lastchecked.ToUTCString()
                 << " last modified: " << lastmodified.ToUTCString() << endl;
 
+            /*
             FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Libraries");
             FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Account Pictures");
             FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Desktop");
@@ -136,7 +144,14 @@ void TimerJob()
             FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Music");
             FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Pictures");
             FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Videos");
-            cout << "ComputeParentFolderSize: " << FolderManager::GetInstance().ComputeParentFolderSize("C:\\Users\\Public\\AccountPictures\\S-1-5-21-3356187684-364531250-1886181994-1002") << endl;
+            */
+
+            DateTime after4;
+            cout << "After4: " << after3.ToUTCString() << endl;
+            cout << "ComputeParentFolderSize: " << FolderManager::GetInstance().ComputeParentFolderSize(path) << endl;
+
+            DateTime after5;
+            cout << "After5: " << after3.ToUTCString() << endl;
 
             return;
 

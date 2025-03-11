@@ -4,16 +4,18 @@
 #include <string>
 #include "DateTime.h"
 
-using namespace std;
-
 
 class DriveOperations
 {
 public:
 	DriveOperations() = delete;
-	static void EnumerateFolders(string fullpath, list<string>& folderlist);
-	static void EnumerateFiles(string fullpath, list<string>& filelist);
-	static uintmax_t Filesize(string fullpath);
-	static DateTime GetLastWriteTime(string foldername);
+	static void EnumerateFolders(std::string fullpath, std::list<std::string>& folderlist);
+	static void EnumerateFiles(std::string fullpath, std::list<std::string>& filelist);
+	static uintmax_t Filesize(std::string fullpath);
+	static DateTime GetLastWriteTime(std::string foldername);
+	static void PrintDriveDetails(std::wstring drive);
+	static std::vector<std::string> getListOfDrives();
+	static std::wstring UNCPathW(std::string path);
+	static std::string UNCPath(std::string path);
 };
 
