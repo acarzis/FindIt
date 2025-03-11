@@ -30,7 +30,16 @@ void DateTime::Now()
 
 DateTime::DateTime(string datetimestring)
 {
-    // TO DO - parse datetime db object
+    // Format:  2025-03-11 12:57:20
+    if (!datetimestring.empty())
+    {
+        _year = stoi(datetimestring.substr(0, 4));
+        _month = stoi(datetimestring.substr(5, 2)) - 1;
+        _day = stoi(datetimestring.substr(8, 2));
+        _hour = stoi(datetimestring.substr(11, 2));
+        _min = stoi(datetimestring.substr(14, 2));
+        _sec = stoi(datetimestring.substr(17, 2));
+    }
 }
 
 DateTime::DateTime()

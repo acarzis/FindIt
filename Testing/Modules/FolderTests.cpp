@@ -20,9 +20,15 @@ TEST(FolderTests, FolderExists)
     }
 
     f.AddFolder(fullpath, "", 0);
+    
+    string category; 
+    int64_t foldersize;
+    DateTime lastchecked;
+    DateTime lastmodified;
+    f.GetFolderDetails(fullpath, category, foldersize, lastchecked, lastmodified);  // lastchecked, lastmodified passed visual inspection
+
     long int after2 = f.GetCount();
     ASSERT_EQ(0, after2 - after);
-
     ASSERT_EQ(exists, true);
     ASSERT_EQ(tempfolder.GetName(), "Images");
     ASSERT_EQ(tempfolder.GetPath(), "D:\\");
