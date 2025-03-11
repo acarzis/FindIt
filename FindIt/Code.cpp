@@ -133,7 +133,7 @@ void TimerJob()
             cout << "After3: " << after3.ToUTCString() << endl;
 
             Folders::GetInstance().GetFolderDetails(path, foldercategory, fldrsize, lastchecked, lastmodified);
-            cout << "Folder " << "C:\\Users\\acarz" << " size: " << fldrsize << " last checked: " << lastchecked.ToUTCString()
+            cout << "Folder " << path << " size: " << fldrsize << " last checked: " << lastchecked.ToUTCString()
                 << " last modified: " << lastmodified.ToUTCString() << endl;
 
             /*
@@ -152,63 +152,6 @@ void TimerJob()
 
             DateTime after5;
             cout << "After5: " << after3.ToUTCString() << endl;
-
-            return;
-
-
-            // test code:
-            Folders& fold = Folders::GetInstance();
-            Files& files = Files::GetInstance();
-            fold.GetFolderDetails("c:\\AMD\\AMD-Software-Adrenalin-Edition-24.2.1-combined-MinimalSetup-240223_web", foldercategory, fldrsize, lastchecked, lastmodified);
-            cout << "1 " << fldrsize << endl;
-
-            fold.GetFolderDetails("c:\\AMD\\AMDSoftwareInstaller", foldercategory, fldrsize, lastchecked, lastmodified);
-            cout << "2 " << fldrsize << endl;
-
-            fold.GetFolderDetails("c:\\AMD\\Chipset_Driver_Installer", foldercategory, fldrsize, lastchecked, lastmodified);
-            cout << "3 " << fldrsize << endl;
-
-            fold.GetFolderDetails("c:\\AMD\\Chipset_Installer", foldercategory, fldrsize, lastchecked, lastmodified);
-            cout << "4 " << fldrsize << endl;
-
-            fold.GetFolderDetails("c:\\AMD\\Chipset_Software", foldercategory, fldrsize, lastchecked, lastmodified);
-            cout << "5 " << fldrsize << endl;
-
-            fold.GetFolderDetails("c:\\AMIGADEV", foldercategory, fldrsize, lastchecked, lastmodified);
-            cout << "6 " << fldrsize << endl;
-
-
-            fldrsize = 0;
-            fldrsize = fold.ComputeFolderSize("c:\\AMD\\AMD-Software-Adrenalin-Edition-24.2.1-combined-MinimalSetup-240223_web");
-            cout << "11 " << fldrsize << endl;
-            cout << "Number of folders: " << fold.GetCount("c:\\AMD\\AMD-Software-Adrenalin-Edition-24.2.1-combined-MinimalSetup-240223_web") << endl;
-            cout << "Number of files: " << files.GetCount() << endl;
-
-            fldrsize = 0;
-            fldrsize = fold.ComputeFolderSize("c:\\AMD\\AMDSoftwareInstaller");
-            cout << "12 " << fldrsize << endl;
-
-            fldrsize = 0;
-            fldrsize = fold.ComputeFolderSize("c:\\AMD\\Chipset_Driver_Installer");
-            cout << "13 " << fldrsize << endl;
-
-            fldrsize = 0;
-            fldrsize = fold.ComputeFolderSize("c:\\AMD\\Chipset_Installer");
-            cout << "14 " << fldrsize << endl;
-
-            fldrsize = 0;
-            fldrsize = fold.ComputeFolderSize("c:\\AMD\\Chipset_Software");
-            cout << "15 " << fldrsize << endl;
-
-            fldrsize = 0;
-            DateTime before;
-            cout << "Before: " << before.ToUTCString() << endl;
-            fldrsize = fold.ComputeFolderSize("c:\\Users");
-            DateTime after;
-            cout << "After: " << after.ToUTCString() << endl;
-            cout << "16 " << fldrsize << endl;
-            cout << "Number of folders: " << fold.GetCount("c:\\Users") << " , # folders: " << FolderManager::GetInstance().GetFolderCount("c:\\Users") << endl;
-            cout << "Number of files: " << FolderManager::GetInstance().GetFileCount("c:\\Users") << endl;
 
             return;
         }
