@@ -4,13 +4,14 @@
 #include "../Library/Entities/Category.h"
 #include "../Library/Entities/Folder.h"
 #include "../Library/Utils/DateTime.h"
-#include "../Library/InMemoryDB/Drives.h"
-#include "../Library/InMemoryDB/ToScanQueue.h"
-#include "../Library/InMemoryDB/Categories.h"
-#include "../Library/InMemoryDB/Folders.h"
 #include "../Library/Utils/DriveOperations.h"
+#include "../Library/InMemoryDB/Categories.h"
+#include "../Library/InMemoryDB/Drives.h"
 #include "../Library/InMemoryDB/Files.h"
 #include "../Library/InMemoryDB/FolderManager.h"
+#include "../Library/InMemoryDB/Folders.h"
+#include "../Library/InMemoryDB/ToScanQueue.h"
+#include "../Library/Db/Operations.h"
 
 
 using namespace std;
@@ -26,6 +27,10 @@ std::vector<std::string> drives;                            // drives on the PC,
 void Init()
 {
     drives = DriveOperations::getListOfDrives();
+
+    // test code :    
+    // Operations test("D:\\EF_SQLite.db");
+
 
     Drives d = Drives::GetInstance();
     d.Load();

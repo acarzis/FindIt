@@ -103,8 +103,10 @@ std::vector<std::string> DriveOperations::getListOfDrives() {
 
 
 // https://stackoverflow.com/questions/62906482/how-do-i-determine-a-mapped-drives-details
-void DriveOperations::PrintDriveDetails(wstring drive)
+string DriveOperations::GetDriveDetails(wstring drive)
 {
+    string result;
+
     CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
     HRESULT hr;
@@ -121,7 +123,7 @@ void DriveOperations::PrintDriveDetails(wstring drive)
     {
         CoUninitialize();
         cout << "Failed to initialize security. Error code = 0x" << hex << hr << endl;
-        return;
+        return result;
     }
 
     hr = CoCreateInstance(CLSID_WbemLocator, NULL, CLSCTX_INPROC_SERVER, IID_IWbemLocator, (void**)&pWbemLocator);
@@ -129,7 +131,7 @@ void DriveOperations::PrintDriveDetails(wstring drive)
     {
         CoUninitialize();
         cout << "Failed to CoCreateInstance. Error code = 0x" << hex << hr << endl;
-        return;
+        return result;
     }
 
     _bstr_t bstrNamespace = L"root\\cimv2";
@@ -140,7 +142,7 @@ void DriveOperations::PrintDriveDetails(wstring drive)
         pWbemLocator->Release();
         CoUninitialize();
         cout << "Failed to Connect to the Server. Error code = 0x" << hex << hr << endl;
-        return;
+        return result;
     }
     pWbemLocator->Release();
     printf("Successfully connected to namespace.\n");
@@ -160,7 +162,7 @@ void DriveOperations::PrintDriveDetails(wstring drive)
         pServices->Release();
         cout << "Could not set proxy blanket. Error code = 0x" << hex << hr << endl;
         CoUninitialize();
-        return;               // Program has failed.
+        return result;                // Program has failed.
     }
 
     wstring bstrPath = L"Win32_LogicalDisk.DeviceID=\"" + drive + L"\"";
@@ -175,7 +177,7 @@ void DriveOperations::PrintDriveDetails(wstring drive)
         pServices->Release();
         CoUninitialize();
         cout << "failed GetObject. Error code = 0x" << hex << hr << endl;
-        return;
+        return result;
     }
 
     // Display the object
@@ -186,18 +188,18 @@ void DriveOperations::PrintDriveDetails(wstring drive)
         pServices->Release();
         CoUninitialize();
         cout << "failed GetObjectText. Error code = 0x" << hex << hr << endl;
-        return;
+        return result;
     }
     printf("%S\n\n", bstrDriveObj);
 
-    VARIANT freesize, totalsize;
+    VARIANT freesize, totalsize, providername, volumename;
     hr = pDrive->Get(L"FreeSpace", 0, &freesize, 0, NULL);
     if (FAILED(hr))
     {
         pServices->Release();
         CoUninitialize();
         cout << "failed Get FreeSpace. Error code = 0x" << hex << hr << endl;
-        return;
+        return result;
     }
     printf("free space: %S\n", freesize.bstrVal);
 
@@ -207,9 +209,27 @@ void DriveOperations::PrintDriveDetails(wstring drive)
         pServices->Release();
         CoUninitialize();
         cout << "failed Get Size. Error code = 0x" << hex << hr << endl;
-        return;
+        return result;
     }
     printf("total size: %S\n", totalsize.bstrVal);
+
+    hr = pDrive->Get(L"ProviderName", 0, &providername, 0, NULL);
+    if (FAILED(hr))
+    {
+        pServices->Release();
+        CoUninitialize();
+        cout << "failed Get Size. Error code = 0x" << hex << hr << endl;
+        return result;
+    }
+
+    hr = pDrive->Get(L"VolumeName", 0, &volumename, 0, NULL);
+    if (FAILED(hr))
+    {
+        pServices->Release();
+        CoUninitialize();
+        cout << "failed Get Size. Error code = 0x" << hex << hr << endl;
+        return result;
+    }
 
     VariantClear(&freesize);
     VariantClear(&totalsize);
@@ -218,6 +238,21 @@ void DriveOperations::PrintDriveDetails(wstring drive)
     pServices = NULL;
 
     CoUninitialize();
+
+
+    if (providername.vt != VT_NULL)
+    {   
+        _bstr_t bstr = providername.bstrVal;
+        char* b = (char*)bstr;
+        result = b;
+    }
+    else if (volumename.vt != VT_NULL)
+    {
+        _bstr_t bstr = volumename.bstrVal;
+        char* b = (char*)bstr;
+        result = b;
+    }
+    return result;
 }
 
 

@@ -1,22 +1,162 @@
 #include <list>
+#include <mutex>
 #include <SQLiteCpp/Database.h>
+#include <SQLiteCpp/Transaction.h>
+#include <boost/filesystem.hpp>
 #include "Operations.h"
 #include "../Entities/Category.h"
 #include "../Entities/Drive.h"
 #include "../Entities/Folder.h"
+#include "../Utils/DriveOperations.h"
+#include "../Utils/Misc.cpp"
 
 using namespace std;
+namespace fs = boost::filesystem;
+
+template <typename T>
+class Monitor {
+    // The object to be monitored
+    T data;
+
+    // Mutex to protect the object
+    std::mutex mut;
+public:
+    // Default constructor
+    Monitor<T>(T data = T{}) : data(data) {}
+
+    // Function call operator
+    // Argument is a callable object of type Func
+    // which takes an argument of type T
+    template <typename Func>
+    auto operator() (Func func) {
+        std::lock_guard<std::mutex> lck_guard(mut);
+
+        // Call the function, protected by the lock
+        return func(data);
+    }
+};
+
 
 Operations::Operations(string dbname)
 {
     _dbname = dbname;
+
+    // create db if required
+    fs::path path = fs::path(dbname);
+    if (!exists(path))
+    {
+        CreateDbStructure();
+        InsertDefaultTableData();
+    }
 }
+
+
+void Operations::CreateDbStructure()
+{
+    try
+    {
+        lock_guard<std::mutex>  lck_guard(_mut);
+        SQLite::Database    db(_dbname, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+
+        SQLite::Transaction transaction(db);
+
+        string command = R"(
+            CREATE TABLE Categories(
+                Name text PRIMARY KEY,
+                Extensions text NULL,
+                FolderLocations text NULL)
+            )";
+        db.exec(command);
+
+        command = R"(
+            CREATE TABLE Drives(
+                LogicalDrive text PRIMARY KEY,
+                Name text NULL,
+                ScanPriority bigint NOT NULL)
+            )";
+        db.exec(command);
+
+        command = R"(
+            CREATE TABLE Files(
+                FullPathHash text PRIMARY KEY,
+                Name text NULL,
+                FileSize bigint NOT NULL,
+                FolderHash text NULL,
+                CategoryName text NULL)
+            )";
+        db.exec(command);                           // TO DO: add FK constraints
+
+        command = R"(
+            CREATE TABLE Folders(
+                FullPathHash text PRIMARY KEY,
+                Name text NULL,
+                Path text NULL,
+                LastModified text NOT NULL,
+                LastChecked text NOT NULL,
+                FolderSize bigint NOT NULL,
+                CategoryName text NULL)
+            )";
+        db.exec(command);                           // TO DO: add FK constraints
+
+        command = R"(
+            CREATE TABLE ToScanQueue(
+                Id bigint PRIMARY KEY,
+                FullPathHash text NULL,
+                Name text NULL,
+                Path text NULL,
+                Priority bigint NOT NULL)
+            )";
+        db.exec(command);
+
+        transaction.commit();
+    }
+
+    catch (exception& e)
+    {
+        string temp = e.what();
+        throw e;
+    }
+}
+
+void Operations::InsertDefaultTableData()
+{
+    try
+    {
+        std::vector<std::string>    drives = DriveOperations::getListOfDrives();
+        lock_guard<std::mutex>      lck_guard(_mut);
+        SQLite::Database            db(_dbname, SQLite::OPEN_READWRITE);
+
+        SQLite::Transaction transaction(db);
+
+        for (string drive : drives)
+        {
+            string name;
+            if (hasEnding(drive, "\\"))
+            {
+                drive = drive.substr(0, drive.size() - 1);
+                wstring wdrive(drive.begin(), drive.end());
+                name = DriveOperations::GetDriveDetails(wdrive);
+            }
+
+            string command = format("INSERT INTO Drives(LogicalDrive, Name, ScanPriority) VALUES (\"{}\", \"{}\", 0)", drive, name);
+            db.exec(command);
+        }
+        transaction.commit();
+    }
+
+    catch (exception& e)
+    {
+        throw e;
+    }
+}
+
 
 void Operations::LoadCategories(list<Category> &categories)
 {
     try {
-        SQLite::Database    db = SQLite::Database(_dbname);
-        SQLite::Statement   query(db, "SELECT * FROM Categories");
+        lock_guard<std::mutex>  lck_guard(_mut);
+        SQLite::Database        db = SQLite::Database(_dbname);
+        SQLite::Statement       query(db, "SELECT * FROM Categories");
 
         while (query.executeStep())
         {
@@ -38,8 +178,9 @@ void Operations::LoadCategories(list<Category> &categories)
 void Operations::GetLatestToScanQueueItem(ToScanQueueItem& latestitem)
 {
     try {
-        SQLite::Database    db = SQLite::Database(_dbname);
-        SQLite::Statement   query(db, "SELECT * FROM ToScanQueue ORDER BY Id ASC LIMIT 1");
+        lock_guard<std::mutex>  lck_guard(_mut);
+        SQLite::Database        db = SQLite::Database(_dbname);
+        SQLite::Statement       query(db, "SELECT * FROM ToScanQueue ORDER BY Id ASC LIMIT 1");
 
         while (query.executeStep())
         {
@@ -63,8 +204,9 @@ void Operations::GetLatestToScanQueueItem(ToScanQueueItem& latestitem)
 void Operations::LoadToScanQueueItems(set<ToScanQueueItem>& toscanqueueitems)
 {
     try {
-        SQLite::Database    db = SQLite::Database(_dbname);
-        SQLite::Statement   query(db, "SELECT * FROM ToScanQueue ORDER BY Id ASC");
+        lock_guard<std::mutex>  lck_guard(_mut);
+        SQLite::Database        db = SQLite::Database(_dbname);
+        SQLite::Statement       query(db, "SELECT * FROM ToScanQueue ORDER BY Id ASC");
 
         while (query.executeStep())
         {
@@ -88,8 +230,9 @@ void Operations::LoadToScanQueueItems(set<ToScanQueueItem>& toscanqueueitems)
 void Operations::LoadDrives(list<Drive>& drives)
 {
     try {
-        SQLite::Database    db = SQLite::Database(_dbname);
-        SQLite::Statement   query(db, "SELECT * FROM Drives");
+        lock_guard<std::mutex>  lck_guard(_mut);
+        SQLite::Database        db = SQLite::Database(_dbname);
+        SQLite::Statement       query(db, "SELECT * FROM Drives");
 
         while (query.executeStep())
         {
@@ -111,8 +254,9 @@ void Operations::LoadDrives(list<Drive>& drives)
 void Operations::LoadFolders(set<Folder>& folders)
 {
     try {
-        SQLite::Database    db = SQLite::Database(_dbname);
-        SQLite::Statement   query(db, "SELECT * FROM Folders");
+        lock_guard<std::mutex>  lck_guard(_mut);
+        SQLite::Database        db = SQLite::Database(_dbname);
+        SQLite::Statement       query(db, "SELECT * FROM Folders");
 
         while (query.executeStep())
         {

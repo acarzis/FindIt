@@ -3,12 +3,16 @@
 #include ".\IDatabase.h"
 #include <string>
 #include <set>
+#include <mutex>
 
 using namespace std;
 
 class Operations : IDatabase
 {
-	string _dbname;
+	string	_dbname;
+	mutex	_mut;
+	void CreateDbStructure();
+	void InsertDefaultTableData();
 
 public:
 	Operations(string dbname);
@@ -25,5 +29,4 @@ public:
 
 	// Folders table
 	void LoadFolders(set<Folder>& folders) override;
-	// void AddFolder(Folder& folder) const override;
 };
