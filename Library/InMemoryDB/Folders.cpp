@@ -14,7 +14,7 @@ namespace fs = boost::filesystem;
 
 bool Folders::FolderExists(string folderpath, Folder& folder)
 {
-	Folder temp(SHA256HashString(folderpath), "", "", "", "", 0);
+	Folder temp(SHA256HashString(folderpath), "", "", "", "", 0, "");
 	std::set<Folder>::const_iterator it = _folders.find(temp);
 	if (it != _folders.end())
 	{
@@ -39,12 +39,11 @@ void Folders::Load()
 
 void Folders::AddFolder(string fullpath, string category, int64_t foldersize)
 {
-	// TO DO - add category
 	std::string name = fs::path(fullpath).filename().string();
 	std::string path = fs::path(fullpath).parent_path().string();
 
 	DateTime now;
-	Folder temp(SHA256HashString(fullpath), name, path, now.ToUTCString(), now.ToUTCString(), foldersize);
+	Folder temp(SHA256HashString(fullpath), name, path, now.ToUTCString(), now.ToUTCString(), foldersize, category);
 	std::set<Folder>::const_iterator it = _folders.find(temp);
 	if (it == _folders.end())
 	{
@@ -69,7 +68,7 @@ void Folders::GetFolderDetails(string fullpath, string &category, int64_t &folde
 	std::string path = fs::path(fullpath).parent_path().string();
 
 	DateTime now;
-	Folder temp(SHA256HashString(fullpath), name, path, now.ToUTCString(), now.ToUTCString(), foldersize);
+	Folder temp(SHA256HashString(fullpath), name, path, now.ToUTCString(), now.ToUTCString(), foldersize, category);
 	std::set<Folder>::const_iterator it = _folders.find(temp);
 	foldersize = 0;
 	category = "";
@@ -88,7 +87,7 @@ void Folders::AddFolderDetails(string fullpath, string category, int64_t folders
 	std::string path = fs::path(fullpath).parent_path().string();
 
 	DateTime now;
-	Folder temp(SHA256HashString(fullpath), name, path, lastmodified.ToUTCString(), now.ToUTCString(), foldersize);
+	Folder temp(SHA256HashString(fullpath), name, path, lastmodified.ToUTCString(), now.ToUTCString(), foldersize, category);
 	std::set<Folder>::const_iterator it = _folders.find(temp);
 	if (it != _folders.end())
 	{
@@ -118,7 +117,7 @@ int64_t Folders::ComputeFolderSize(string fullpath)
 	// Performed recursively, accesses file system if need be
 	int64_t result = 0;
 	DateTime now;
-	Folder foldertemp(SHA256HashString(fullpath), "", "", "", "", 0);
+	Folder foldertemp(SHA256HashString(fullpath), "", "", "", "", 0, "");
 
 	list<string> folderlist;
 	DriveOperations::EnumerateFolders(fullpath, folderlist);
@@ -172,7 +171,7 @@ int64_t Folders::ComputeFolderSizeInternally(string fullpath)
 	// Performed recursively - Does not enumerate file system
 	int64_t result = 0;
 	DateTime now;
-	Folder foldertemp(SHA256HashString(fullpath), "", "", "", "", 0);
+	Folder foldertemp(SHA256HashString(fullpath), "", "", "", "", 0, "");
 
 	list<string> folderlist;
 	
@@ -235,7 +234,7 @@ int64_t Folders::ComputeFolderSizeInternally(string fullpath)
 string Folders::GetFullPath(string folderhash)
 {
 	string result;
-	Folder foldertemp(folderhash, "", "", "", "", 0);
+	Folder foldertemp(folderhash, "", "", "", "", 0, "");
 	std::set<Folder>::const_iterator it = _folders.find(foldertemp);
 	if (it != _folders.end())
 	{
@@ -244,7 +243,13 @@ string Folders::GetFullPath(string folderhash)
 	}
 	else
 	{
-		throw runtime_error("Folder not found");
+		throw runtime_error("Folder not found - hash: " + folderhash);
 	}
 	return result;
+}
+
+void Folders::WriteToDisk()
+{
+	Operations op(::DBNAME);
+	op.WriteFoldersToDisk(_folders);
 }

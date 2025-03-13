@@ -1,6 +1,5 @@
 #include "ToScanQueue.h"
 #include "../Db/Operations.h"
-#include "../Globals/constants.h"
 #include "../Utils/Encryption.h"
 #include <boost/filesystem.hpp>
 
@@ -26,7 +25,7 @@ void ToScanQueue::Load()
 
 	if (_toscanqueue.size() > 0)
 	{
-		auto q = *_toscanqueue.begin();
+		auto q = *_toscanqueue.rbegin();
 		_currentId = q.GetId();
 	}
 }
@@ -83,4 +82,10 @@ bool ToScanQueue::PathExistsInScanQueue(std::string fullpath)
 		return true;
 
 	return false;
+}
+
+void ToScanQueue::WriteToDisk()
+{
+	Operations op(::DBNAME);
+	op.WriteScanQueueToDisk(_toscanqueue);
 }

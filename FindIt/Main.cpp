@@ -1,7 +1,4 @@
-﻿// FindIt.cpp : Defines the entry point for the application.
-//
-
-#include "Main.h"
+﻿#include "Main.h"
 #include "Code.h"
 #include <string>
 #include <iostream>
@@ -12,6 +9,12 @@
 #include "../Library/Entities/ToScanQueueItem.h"
 #include "../Library/InMemoryDB/Categories.h"
 #include "../Library/InMemoryDB/ToScanQueue.h"
+#include "../Library/InMemoryDB/Folders.h"
+#include "../Library/InMemoryDB/Files.h"
+#include "../Library/Utils/DateTime.h"
+#include "../Library/Globals/constants.cpp"
+#include "../Library/Db/Operations.h"
+
 
 using namespace std;
 
@@ -54,15 +57,46 @@ int main()
 		cout << "Exception: " << e.what() << endl;
 	}
 
-
 	try
 	{
 		Init();
 
-		while (1) {
+		int count = 0;
+		while (++count) {
 			TimerJob();
 			std::this_thread::sleep_for(std::chrono::microseconds(10));
+
+			if (count >= DBPERSISTENCEINTERVAL)
+			{
+				cout << "Performing db backup ... " << endl;
+
+				count = 0;
+				Operations op(::DBNAME);
+				ToScanQueue::GetInstance().WriteToDisk();
+				Folders::GetInstance().WriteToDisk();
+				Files::GetInstance().WriteToDisk();
+				op.BackupDatabase();
+			}
 		}
+
+		DateTime point1;
+		cout << "Point1: " << point1.ToUTCString() << endl;
+
+		ToScanQueue::GetInstance().WriteToDisk();
+
+		DateTime point2;
+		cout << "Point2: " << point2.ToUTCString() << endl;
+
+		Folders::GetInstance().WriteToDisk();
+
+		DateTime point3;
+		cout << "Point3: " << point2.ToUTCString() << endl;
+
+		Files::GetInstance().WriteToDisk();
+
+		DateTime point4;
+		cout << "Point4: " << point2.ToUTCString() << endl;
+
 	}
 	catch (exception& e)
 	{

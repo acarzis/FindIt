@@ -37,28 +37,30 @@ void Init()
     d.GetDriveList(driveList);
 
     ToScanQueue& toscanqueue = ToScanQueue::GetInstance();
-    // omitted while testing
+
+    // omit while testing:
     // toscanqueue.Load();
+    // Folders::GetInstance().Load();
+    // Files::GetInstance().Load();
+
 
     Categories& categories = Categories::GetInstance();
     categories.Load();
     categoryList = categories.GetCategories();
 
-    // omitted while testing
-    // add drive list to the scanqueue
-    /*
+    // omit while testing:
     for (Drive drive : driveList)
     {   
-        toscanqueue.AddPathToScanQueue(drive.GetLogicalDriveName(), 3);      // TO DO: create priority enums 
+        toscanqueue.AddPathToScanQueue(drive.GetLogicalDriveName(), ScanPriority::MEDHIGH);
     }
-    */
+
 
     // testing code: 
-    toscanqueue.AddPathToScanQueue(DriveOperations::UNCPath("Z:"), 2);      // TO DO: create priority enums 
-    // toscanqueue.AddPathToScanQueue("c:\\AMD\\AMD-Software-Adrenalin-Edition-24.2.1-combined-MinimalSetup-240223_web", 2);      // TO DO: create priority enums 
+    // toscanqueue.AddPathToScanQueue(DriveOperations::UNCPath("Z:"), 2);
+    // toscanqueue.AddPathToScanQueue("c:\\AMD\\AMD-Software-Adrenalin-Edition-24.2.1-combined-MinimalSetup-240223_web", 2);
 
 
-    // below should be done every hour
+    // below should be refreshed every hour
     for (list<Category>::const_iterator it = categoryList.begin(); it != categoryList.end(); ++it)
     {
         Category c = *it;
@@ -110,7 +112,7 @@ void TimerJob()
         if (fullpath == "")
         {
             // test code 
-
+            /*
             string path = DriveOperations::UNCPath("Z:");
 
             cout << "nothing to process" << endl;
@@ -118,12 +120,6 @@ void TimerJob()
             DateTime before1;
             fldrsize = 0;
             cout << "Before: " << before1.ToUTCString() << endl;
-
-            /*
-            fldrsize = Folders::GetInstance().ComputeFolderSize("C:\\Users\\Default");
-            DateTime after1;
-            cout << "After: " << after1.ToUTCString() << " Folder size: " << fldrsize << endl;
-            */
 
             fldrsize = Folders::GetInstance().ComputeFolderSizeInternally(path);
             DateTime after1;
@@ -141,24 +137,19 @@ void TimerJob()
             cout << "Folder " << path << " size: " << fldrsize << " last checked: " << lastchecked.ToUTCString()
                 << " last modified: " << lastmodified.ToUTCString() << endl;
 
-            /*
-            FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Libraries");
-            FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Account Pictures");
-            FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Desktop");
-            FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Documents");
-            FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Music");
-            FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Pictures");
-            FolderManager::GetInstance().AddChildFolder("D:\\Users\\Public", "Public Videos");
-            */
-
             DateTime after4;
             cout << "After4: " << after3.ToUTCString() << endl;
             cout << "ComputeParentFolderSize: " << FolderManager::GetInstance().ComputeParentFolderSize(path) << endl;
 
             DateTime after5;
             cout << "After5: " << after3.ToUTCString() << endl;
+            */
 
-            return;
+            for (Drive drive : driveList)
+            {
+                ToScanQueue::GetInstance().AddPathToScanQueue(drive.GetLogicalDriveName(), ScanPriority::MEDHIGH);
+            }
+
         }
 
         cout << "processing folder: " << fullpath << endl;
@@ -193,6 +184,10 @@ void TimerJob()
                         fs::path path(f);   // f = foldername + filename
                         string catstr;
                         string fileextension = path.extension().string();
+                        if (fileextension[0] == '.') {
+                            fileextension = fileextension.substr(1);
+                        }
+
                         tuple<string, string> extCatname = make_tuple(fileextension, "");
                         auto ce = find_if(categoryExtensions.begin(), categoryExtensions.end(),
                             [extCatname](tuple<string, string> t) -> bool {
@@ -234,6 +229,13 @@ void TimerJob()
                     DateTime now;
                     fold.AddFolderDetails(fullpath, "", filelistSize, now, false);
 
+                    fs::path fp(fullpath);
+                    int64_t foldersize = FolderManager::GetInstance().ComputeParentFolderSize(fp.parent_path().string());
+                    if (foldersize > 0)
+                    {
+                        fold.AddFolderDetails(fp.parent_path().string(), "", foldersize, now, false);
+                    }
+
                     // get parent folder
                     /*
                     fs::path fp(fullpath);
@@ -262,7 +264,7 @@ void TimerJob()
                     DateTime lastwritetime = DriveOperations::GetLastWriteTime(fullpath);
                     if ((lastwritetime >= lastmodified) || (!exists))
                     {
-                        nextitemtoprocess.AddPathToScanQueue(f, 2);         // TO DO: use enum constants
+                        nextitemtoprocess.AddPathToScanQueue(f, ScanPriority::MED);
 
                         // cout << "Adding to scan queue " << f << endl;
                     }
@@ -278,7 +280,7 @@ void TimerJob()
         }
         catch (exception& e)
         {
-            cout << "Exception while processing folder  " << fullpath << e.what() << endl;
+            cout << "Exception while processing folder  " << fullpath << " " << e.what() << endl;
         }
 
         // add the folder's category if available

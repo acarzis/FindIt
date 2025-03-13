@@ -15,6 +15,8 @@ public:
 	int64_t GetCount();
 	void GetFile(string filepath, File& file);
 	string GetFileName(string filepathhash);
+	void Load();
+	void WriteToDisk();
 
 protected:
 	set<File> _files;			// sorted by File::_FullPathHash

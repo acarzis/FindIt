@@ -19,10 +19,12 @@ class File
 
 public:
 	File(string fullpath, int64_t filesize, string categoryname);
+	File(string fullpathhash, string name, int64_t filesize, string folderhash, string categoryname);
 	File(string fullpathhash);						// TO DO: only useful for searching. Try to do better
 	bool operator< (const File& right) const;
 	int64_t GetFilesize() const;
 	string GetName() const;
 	string GetFullPathHash() const;
 	string GetFolderHash() const;
+	string GetCategoryName() const;
 };

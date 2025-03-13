@@ -22,7 +22,7 @@ class Folder
 
 public:
     Folder();
-    Folder(string fullpathhash, string name, string path, string lastmodified, string lastchecked, int64_t foldersize);
+    Folder(string fullpathhash, string name, string path, string lastmodified, string lastchecked, int64_t foldersize, string category);
     bool operator< (const Folder& right) const;
     string GetFullPathHash() const;
     string GetPathHash() const;

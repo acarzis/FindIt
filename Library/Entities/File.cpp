@@ -12,8 +12,13 @@ File::File(string fullpath, int64_t filesize, string categoryname) :
 {
 }
 
+File::File(string fullpathhash, string name, int64_t filesize, string folderhash, string categoryname) :
+	_CategoryName(categoryname), _Name(name), _FileSize(filesize), _FullPathHash(fullpathhash), _FolderHash(folderhash)
+{
+}
+
 File::File(string fullpathhash) :
-	_FullPathHash(fullpathhash)
+	_FullPathHash(fullpathhash), _FileSize(0)
 {
 }
 
@@ -40,4 +45,9 @@ string File::GetFullPathHash() const
 string File::GetFolderHash() const
 {
 	return _FolderHash;
+}
+
+string File::GetCategoryName() const
+{
+	return _CategoryName;
 }

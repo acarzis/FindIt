@@ -13,8 +13,9 @@ Folder::Folder():
 {
 }
 
-Folder::Folder(string fullpathhash, string name, string path, string lastmodified, string lastchecked, int64_t foldersize):
-	_FullPathHash(fullpathhash), _Name(name), _Path(path), _LastModified(lastmodified), _LastChecked(lastchecked), _FolderSize(foldersize)
+Folder::Folder(string fullpathhash, string name, string path, string lastmodified, string lastchecked, int64_t foldersize, string category):
+	_FullPathHash(fullpathhash), _Name(name), _Path(path), _LastModified(lastmodified), _LastChecked(lastchecked), 
+	_FolderSize(foldersize), _CategoryName(category)
 {
 }
 

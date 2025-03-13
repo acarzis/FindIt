@@ -184,7 +184,7 @@ list(APPEND BUILD_FILES "Entities/File.cpp")
 list(APPEND BUILD_FILES "InMemoryDB/Drives.cpp" "InMemoryDB/Categories.cpp" "InMemoryDB/FolderManager.h" "InMemoryDB/FolderManager.cpp") 
 list(APPEND BUILD_FILES "InMemoryDB/ToScanQueue.cpp" "InMemoryDB/Drives.cpp" "InMemoryDB/Files.cpp" "InMemoryDB/Folders.cpp")
 list(APPEND BUILD_FILES "Utils/DateTime.cpp" "Utils/Encryption.cpp" "Utils/DriveOperations.cpp" "Utils/DriveOperations.h")
-add_library (Library ${BUILD_FILES} "Db/Operations.cpp"  "Utils/Registry.h" "Utils/Registry.cpp" "Utils/Misc.cpp")
+add_library (Library ${BUILD_FILES} "Db/Operations.cpp"  "Utils/Registry.h" "Utils/Registry.cpp" "Utils/Misc.cpp" "Globals/constants.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Library PROPERTY CXX_STANDARD 20)

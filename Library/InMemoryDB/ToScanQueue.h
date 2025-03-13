@@ -3,6 +3,8 @@
 #include <set>
 #include <map>
 #include "./Interfaces/IToScanQueue.h"
+#include "../Globals/constants.h"
+
 
 using namespace std;
 
@@ -16,6 +18,7 @@ class ToScanQueue : public IToScanQueue
 public:
     static ToScanQueue& GetInstance();
     void Load();
+    void WriteToDisk();
     void AddPathToScanQueue(std::string fullpath, int priority) override;
     void GetNextQueueItem(ToScanQueueItem& qi) override;
     size_t GetQueueSize() override;

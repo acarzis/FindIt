@@ -3,9 +3,12 @@
 #include "../Utils/Encryption.h"
 #include "Folders.h"
 #include "FolderManager.h"
+#include "../Db/Operations.h"
 
 using namespace std;
 namespace fs = boost::filesystem;
+
+extern std::string DBNAME;
 
 void Files::AddFile(string dirname, string fname, string foldercategory, string filecategory, int64_t filesize)
 {
@@ -51,7 +54,7 @@ void Files::GetFile(string filepath, File& file)
 	}
 	else
 	{
-		throw runtime_error("File not found");
+		throw runtime_error("File not found - filepath: " + filepath);
 	}
 }
 
@@ -67,7 +70,21 @@ string Files::GetFileName(string filepathhash)
 	}
 	else
 	{
-		throw runtime_error("File not found");
+		throw runtime_error("File not found - filepathhash: " + filepathhash);
 	}
 	return result;
 }
+
+void Files::WriteToDisk()
+{
+	Operations op(::DBNAME);
+	op.WriteFilesToDisk(_files);
+}
+
+
+void Files::Load()
+{
+	Operations op(::DBNAME);
+	op.LoadFiles(_files);
+}
+

@@ -14,6 +14,7 @@ class Folders : public IFolders
 public:
 	static Folders& GetInstance();
 	void Load();
+	void WriteToDisk();
 	int64_t GetCount();
 	int64_t GetCount(string fullpath);
 	virtual bool FolderExists(string folderpath, Folder& folder) override;

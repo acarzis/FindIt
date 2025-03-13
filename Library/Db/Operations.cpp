@@ -3,6 +3,7 @@
 #include <SQLiteCpp/Database.h>
 #include <SQLiteCpp/Transaction.h>
 #include <boost/filesystem.hpp>
+#include <iostream>
 #include "Operations.h"
 #include "../Entities/Category.h"
 #include "../Entities/Drive.h"
@@ -12,6 +13,8 @@
 
 using namespace std;
 namespace fs = boost::filesystem;
+
+int Operations::DBBULKINSERTROWS = 10000;
 
 template <typename T>
 class Monitor {
@@ -50,6 +53,40 @@ Operations::Operations(string dbname)
     }
 }
 
+void Operations::BackupDatabase()
+{
+    // TO DO: Review this mechanism. 
+
+    fs::path path = fs::path(_dbname);
+    fs::path bak1 = fs::path(_dbname + ".BAK");
+    fs::path bak2 = fs::path(_dbname + ".BAK2");
+
+    try
+    {
+        if (fs::exists(bak1))
+        {
+            fs::copy_file(bak1, bak2, fs::copy_options::overwrite_existing);
+        }
+        fs::copy_file(path, bak1, fs::copy_options::overwrite_existing);
+    }
+
+    catch (exception &e)
+    {
+        cout << "BackupDatabase exception: " << e.what() << endl;
+
+        if (fs::exists(bak1))
+        {
+            fs::copy_file(bak1, path, fs::copy_options::overwrite_existing);
+        }
+        else
+        {
+            if (fs::exists(bak2))
+            {
+                fs::copy_file(bak2, path, fs::copy_options::overwrite_existing);
+            }
+        }
+    }
+}
 
 void Operations::CreateDbStructure()
 {
@@ -141,11 +178,62 @@ void Operations::InsertDefaultTableData()
             string command = format("INSERT INTO Drives(LogicalDrive, Name, ScanPriority) VALUES (\"{}\", \"{}\", 0)", drive, name);
             db.exec(command);
         }
+
+
+        string name = "Music";
+        string extensions = "mp3,wav,flac,m4a,vob,wma,aac";
+        string command = format("INSERT INTO Categories(Name, Extensions, FolderLocations) VALUES (\"{}\", \"{}\", \"\")", name, extensions);
+        db.exec(command);
+
+        name = "Documents";
+        extensions = "txt,doc,docx,pdf,htm,html,xls,xlsx,odt,ppt,pptx,rtf,wpd,log";
+        command = format("INSERT INTO Categories(Name, Extensions, FolderLocations) VALUES (\"{}\", \"{}\", \"\")", name, extensions);
+        db.exec(command);
+
+        name = "Pictures";
+        extensions = "jpeg,jpg,png,gif,tiff,bmp,webp,psd,raw";
+        command = format("INSERT INTO Categories(Name, Extensions, FolderLocations) VALUES (\"{}\", \"{}\", \"\")", name, extensions);
+        db.exec(command);
+
+        name = "Videos";
+        extensions = "mp4,mov,avi,wmv,flv,f4v,mkv,webm,avchd,mpeg,mpg,ogv,m4v";
+        command = format("INSERT INTO Categories(Name, Extensions, FolderLocations) VALUES (\"{}\", \"{}\", \"\")", name, extensions);
+        db.exec(command);
+
         transaction.commit();
     }
 
     catch (exception& e)
     {
+        throw e;
+    }
+}
+
+[[maybe_unused]]
+void Operations::DropTableData()
+{
+    try
+    {
+        lock_guard<std::mutex>      lck_guard(_mut);
+        SQLite::Database            db(_dbname, SQLite::OPEN_READWRITE);
+
+        SQLite::Transaction transaction(db);
+
+        string command = "delete from files;";
+        db.exec(command);
+
+        command = "delete from folders;";
+        db.exec(command);
+
+        command = "delete from toscanqueue;";
+        db.exec(command);
+
+        transaction.commit();
+    }
+
+    catch (exception& e)
+    {
+        cout << "DropTableData exception: " << e.what() << endl;
         throw e;
     }
 }
@@ -265,11 +353,142 @@ void Operations::LoadFolders(set<Folder>& folders)
             const char* path = query.getColumn(2);
             const char* lastmodified = query.getColumn(3);
             const char* lastchecked = query.getColumn(4);
-            const int foldersize = query.getColumn(5);
+            const int64_t foldersize = query.getColumn(5);
+            const char* categoryname = query.getColumn(6);
 
-            Folder f(fullpathhash, name, path, lastmodified, lastchecked, foldersize);
-            folders.insert(f);    // FAILS TODO
+            Folder f(fullpathhash, name, path, lastmodified, lastchecked, foldersize, categoryname);
+            folders.insert(f);
         }
+    }
+
+    catch (exception& e)
+    {
+        throw e;
+    }
+}
+
+void Operations::LoadFiles(set<File>& files)
+{
+    try {
+        lock_guard<std::mutex>  lck_guard(_mut);
+        SQLite::Database        db = SQLite::Database(_dbname);
+        SQLite::Statement       query(db, "SELECT * FROM Files");
+
+        while (query.executeStep())
+        {
+            const char* fullpathhash = query.getColumn(0);
+            const char* name = query.getColumn(1);
+            const int64_t filesize = query.getColumn(2);
+            const char* folderhash = query.getColumn(3);
+            const char* categoryname = query.getColumn(4);
+
+            File f(fullpathhash, name, filesize, folderhash, categoryname);
+            files.insert(f);
+        }
+    }
+
+    catch (exception& e)
+    {
+        throw e;
+    }
+}
+
+void Operations::WriteScanQueueToDisk(set<ToScanQueueItem> &scanqueueset)
+{
+    try
+    {
+        lock_guard<std::mutex>  lck_guard(_mut);
+        SQLite::Database        db = SQLite::Database(_dbname, SQLite::OPEN_READWRITE);
+        string insertdata;
+        int64_t count = 0;
+        string command = format("INSERT INTO ToScanQueue(Id, FullPathHash, Name, Path, Priority) VALUES ");
+
+        for (ToScanQueueItem item : scanqueueset)
+        {
+            if (!insertdata.empty())
+                insertdata += ",";
+
+            ++count;
+            insertdata += format("({}, \"{}\", \"{}\", \"{}\", \"{}\")", item.GetId(), item.GetFullPathHash(), item.GetName(), item.GetPath(), item.GetPriority());
+
+            if (count % DBBULKINSERTROWS == 0)
+            {
+                string statement = command + insertdata;
+                db.exec(statement);
+                insertdata.clear();
+            }
+        }
+        db.exec(command + insertdata);
+    }
+
+    catch (exception& e)
+    {
+        throw e;
+    }
+}
+
+void Operations::WriteFoldersToDisk(set<Folder>& folderset)
+{
+    try
+    {
+        lock_guard<std::mutex>  lck_guard(_mut);
+        SQLite::Database        db = SQLite::Database(_dbname, SQLite::OPEN_READWRITE);
+        string insertdata;
+        int64_t count = 0;
+        string command = format("INSERT INTO Folders(FullPathHash, Name, Path, LastModified, LastChecked, FolderSize, CategoryName) VALUES ");
+
+        for (Folder item : folderset)
+        {
+            if (!insertdata.empty())
+                insertdata += ",";
+
+            ++count;
+            insertdata += format("(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", {}, \"{}\")", item.GetFullPathHash(), item.GetName(), item.GetPath(), 
+                item.GetLastModified().ToUTCString(), item.GetLastChecked().ToUTCString(), item.GetFolderSize(), item.GetCategory());
+
+            if (count % DBBULKINSERTROWS == 0)
+            {
+                string statement = command + insertdata;
+                db.exec(statement);
+                insertdata.clear();
+            }
+        }
+        db.exec(command + insertdata);
+    }
+
+    catch (exception& e)
+    {
+        throw e;
+    }
+}
+
+void Operations::WriteFilesToDisk(set<File>& fileset)
+{
+    try
+    {
+        lock_guard<std::mutex>  lck_guard(_mut);
+        SQLite::Database        db = SQLite::Database(_dbname, SQLite::OPEN_READWRITE);
+        string insertdata;
+        int64_t count = 0;
+        string command = format("INSERT INTO Files(FullPathHash, Name, FileSize, FolderHash, CategoryName) VALUES ");
+
+        for (File item : fileset)
+        {
+            if (!insertdata.empty())
+                insertdata += ",";
+
+            ++count;
+            insertdata += format("(\"{}\", \"{}\", {}, \"{}\", \"{}\")", item.GetFullPathHash(), item.GetName(),
+                item.GetFilesize(), item.GetFolderHash(), item.GetCategoryName());
+
+            if (count % DBBULKINSERTROWS == 0)
+            {
+                string statement = command + insertdata;
+                db.exec(statement);
+                insertdata.clear();
+            }
+        }
+        db.exec(command + insertdata);
     }
 
     catch (exception& e)
