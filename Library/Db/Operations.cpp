@@ -145,6 +145,12 @@ void Operations::CreateDbStructure()
             )";
         db.exec(command);
 
+        command = R"(
+            CREATE TABLE FolderExclusions(
+                FullPath text NOT NULL)
+            )";
+        db.exec(command);
+
         transaction.commit();
     }
 
@@ -159,7 +165,7 @@ void Operations::InsertDefaultTableData()
 {
     try
     {
-        std::vector<std::string>    drives = DriveOperations::getListOfDrives();
+        std::vector<std::string>    drives = DriveOperations::GetListOfDrives();
         lock_guard<std::mutex>      lck_guard(_mut);
         SQLite::Database            db(_dbname, SQLite::OPEN_READWRITE);
 
@@ -495,3 +501,24 @@ void Operations::WriteFilesToDisk(set<File>& fileset)
         throw e;
     }
 }
+
+void Operations::LoadFolderExclusions(vector<string>& exclusions)
+{
+    try {
+        lock_guard<std::mutex>  lck_guard(_mut);
+        SQLite::Database        db = SQLite::Database(_dbname);
+        SQLite::Statement       query(db, "SELECT * FROM FolderExclusions");
+
+        while (query.executeStep())
+        {
+            const char* fullpath = query.getColumn(0);
+            exclusions.push_back(fullpath);
+        }
+    }
+
+    catch (exception& e)
+    {
+        throw e;
+    }
+}
+

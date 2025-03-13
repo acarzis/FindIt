@@ -1,6 +1,7 @@
 #pragma once
 
 #include <set>
+#include <vector>
 #include "../Entities/Folder.h"
 #include "./Interfaces/IFolders.h"
 
@@ -24,6 +25,7 @@ public:
 	int64_t ComputeFolderSize(string fullpath);
 	int64_t ComputeFolderSizeInternally(string fullpath);
 	string GetFullPath(string folderhash);
+	void GetFolderExclusions(vector<string> &folderExclusions);
 };
 
 

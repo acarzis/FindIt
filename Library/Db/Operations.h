@@ -3,6 +3,7 @@
 #include ".\IDatabase.h"
 #include <string>
 #include <set>
+#include <vector>
 #include <mutex>
 
 using namespace std;
@@ -22,6 +23,9 @@ public:
 	Operations(string dbname);
 	void BackupDatabase();
 	void DropTableData();
+
+	// FolderExclusions table
+	void LoadFolderExclusions(vector<string>& exclusions);
 
 	// Categories table
 	void LoadCategories(list<Category> &categories) override;

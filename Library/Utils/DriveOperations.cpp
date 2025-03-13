@@ -90,7 +90,7 @@ DateTime DriveOperations::GetLastWriteTime(string foldername)
 
 
 //https://stackoverflow.com/questions/286534/enumerating-all-available-drive-letters-in-windows
-std::vector<std::string> DriveOperations::getListOfDrives() {
+std::vector<std::string> DriveOperations::GetListOfDrives() {
     std::vector<std::string> arrayOfDrives;
     char* szDrives = new char[MAX_PATH]();
     if (GetLogicalDriveStringsA(MAX_PATH, szDrives));

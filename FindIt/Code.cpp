@@ -22,11 +22,13 @@ list<Category> categoryList;
 list<tuple<string, string>> categoryExtensions;             // extension, category name
 list<tuple<string, string>> categoryPaths;                  // fullpath, category name
 std::vector<std::string> drives;                            // drives on the PC, includes network/mapped drives
+std::vector<std::string> folderExclusions;
 
 
 void Init()
 {
-    drives = DriveOperations::getListOfDrives();
+    drives = DriveOperations::GetListOfDrives();
+    Folders::GetInstance().GetFolderExclusions(folderExclusions);
 
     Drives d = Drives::GetInstance();
     d.Load();
@@ -146,127 +148,148 @@ void TimerJob()
 
         try
         {
-            fs::path directoryinfo(fullpath);
-            if (fs::is_directory(directoryinfo))
+            // check exclusions
+            bool exclude = false;
+            for (string exclusion : folderExclusions)
             {
-                lastwritetime = DateTime(fs::last_write_time(directoryinfo));
-            }
-
-            bool exists = false;
-            Folders& fold = Folders::GetInstance();
-            Folder fullpathfolder;
-            if (fold.FolderExists(fullpath, fullpathfolder))
-            {
-                lastmodified = fullpathfolder.GetLastModified();
-                exists = true;
-            }
-
-            if ((lastwritetime >= lastmodified) || (!exists))
-            {
-                list<string> filelist;
-                DriveOperations::EnumerateFiles(fullpath, filelist);
-
-                uintmax_t filelistSize = 0;
-                for (string f : filelist)
+                if (fullpath.rfind(exclusion, 0) == 0)
                 {
-                    try
+                    cout << " excluded folder: " << fullpath << endl;
+                    exclude = true;
+                    break;
+                }
+            }
+
+            if (!exclude)
+            {
+                fs::path directoryinfo(fullpath);
+                if (fs::is_directory(directoryinfo))
+                {
+                    lastwritetime = DateTime(fs::last_write_time(directoryinfo));
+                }
+
+                bool exists = false;
+                Folders& fold = Folders::GetInstance();
+                Folder fullpathfolder;
+                if (fold.FolderExists(fullpath, fullpathfolder))
+                {
+                    lastmodified = fullpathfolder.GetLastModified();
+                    exists = true;
+                }
+
+                if ((lastwritetime >= lastmodified) || (!exists))
+                {
+                    list<string> filelist;
+                    DriveOperations::EnumerateFiles(fullpath, filelist);
+
+                    uintmax_t filelistSize = 0;
+                    for (string f : filelist)
                     {
-                        fs::path path(f);   // f = foldername + filename
-                        string catstr;
-                        string fileextension = path.extension().string();
-                        if (fileextension[0] == '.') {
-                            fileextension = fileextension.substr(1);
-                        }
-
-                        tuple<string, string> extCatname = make_tuple(fileextension, "");
-                        auto ce = find_if(categoryExtensions.begin(), categoryExtensions.end(),
-                            [extCatname](tuple<string, string> t) -> bool {
-                                if (get<0>(t) == get<0>(extCatname)) {
-                                    return true;
-                                }
-                                return false;
-                            });
-
-                        if (ce != std::end(categoryExtensions))
+                        try
                         {
-                            catstr = get<1>(*ce);
+                            fs::path path(f);   // f = foldername + filename
+                            string catstr;
+                            string fileextension = path.extension().string();
+                            if (fileextension[0] == '.') {
+                                fileextension = fileextension.substr(1);
+                            }
+
+                            tuple<string, string> extCatname = make_tuple(fileextension, "");
+                            auto ce = find_if(categoryExtensions.begin(), categoryExtensions.end(),
+                                [extCatname](tuple<string, string> t) -> bool {
+                                    if (get<0>(t) == get<0>(extCatname)) {
+                                        return true;
+                                    }
+                                    return false;
+                                });
+
+                            if (ce != std::end(categoryExtensions))
+                            {
+                                catstr = get<1>(*ce);
+                            }
+
+                            uintmax_t fsize = DriveOperations::Filesize(f);
+                            filelistSize += fsize;
+
+                            Files& files = Files::GetInstance();
+                            files.AddFile(path.parent_path().string(), path.filename().string(), "", catstr, fsize); // creates folder if required
+                        }
+                        catch (exception& e)
+                        {
+                            cout << "Exception while processing file " << f << " - " << e.what() << endl;
+                        }
+                    }
+
+                    if (filelist.size() == 0)
+                    {
+                        fold.AddFolder(fullpath, "", 0);
+                    }
+
+                    // add all the sub-folders
+                    list<string> folderlist;
+                    DriveOperations::EnumerateFolders(fullpath, folderlist);
+
+                    if (folderlist.size() == 0)
+                    {
+                        // we have no sub-folders, compute size of parent folder
+                        DateTime now;
+                        fold.AddFolderDetails(fullpath, "", filelistSize, now, false);
+
+                        try
+                        {
+                            fs::path fp(fullpath);
+                            int64_t foldersize = FolderManager::GetInstance().ComputeParentFolderSize(fp.parent_path().string());
+                            if (foldersize > 0)
+                            {
+                                fold.AddFolderDetails(fp.parent_path().string(), "", foldersize, now, false);
+                            }
+                        }
+                        catch (exception& e)
+                        {
+                            cout << "ComputeParentFolderSize exception while processing folder  " << fullpath << " " << e.what() << endl;
                         }
 
-                        uintmax_t fsize = DriveOperations::Filesize(f);
-                        filelistSize += fsize;
-
-                        Files& files = Files::GetInstance();
-                        files.AddFile(path.parent_path().string(), path.filename().string(), "", catstr, fsize); // creates folder if required
+                        // get parent folder
+                        /*
+                        fs::path fp(fullpath);
+                        int64_t foldersize = 0;
+                        foldersize = fold.ComputeFolderSize(fp.parent_path().string());     // problem here. very slow
+                        if (foldersize > 0)
+                        {
+                            fold.AddFolderDetails(fp.parent_path().string(), "", foldersize, now, false);
+                        }
+                        */
                     }
-                    catch (exception& e)
+
+                    for (string f : folderlist)
                     {
-                        cout << "Exception while processing file " << f << " - " << e.what() << endl;
+                        bool exists = false;
+                        lastmodified = DateTime();
+                        lastwritetime = DateTime();
+                        if (fold.FolderExists(f, fullpathfolder))
+                        {
+                            DateTime lastchecked;
+                            string foldercategory;
+                            exists = true;
+                            fold.GetFolderDetails(f, foldercategory, fldrsize, lastchecked, lastmodified);
+                        }
+
+                        DateTime lastwritetime = DriveOperations::GetLastWriteTime(fullpath);
+                        if ((lastwritetime >= lastmodified) || (!exists))
+                        {
+                            nextitemtoprocess.AddPathToScanQueue(f, ScanPriority::MED);
+
+                            // cout << "Adding to scan queue " << f << endl;
+                        }
+                        fold.AddFolderDetails(f, "", 0, lastwritetime, true);
+                        FolderManager::GetInstance().AddChildFolder(fullpath, fs::path(f).filename().string());
                     }
                 }
 
-                if (filelist.size() == 0)
-                {
-                    fold.AddFolder(fullpath, "", 0);
-                }
-
-                // add all the sub-folders
-                list<string> folderlist;
-                DriveOperations::EnumerateFolders(fullpath, folderlist);
-
-                if (folderlist.size() == 0)
-                {
-                    // we have no sub-folders, compute size of parent folder
-                    DateTime now;
-                    fold.AddFolderDetails(fullpath, "", filelistSize, now, false);
-
-                    fs::path fp(fullpath);
-                    int64_t foldersize = FolderManager::GetInstance().ComputeParentFolderSize(fp.parent_path().string());
-                    if (foldersize > 0)
-                    {
-                        fold.AddFolderDetails(fp.parent_path().string(), "", foldersize, now, false);
-                    }
-
-                    // get parent folder
-                    /*
-                    fs::path fp(fullpath);
-                    int64_t foldersize = 0;
-                    foldersize = fold.ComputeFolderSize(fp.parent_path().string());     // problem here. very slow
-                    if (foldersize > 0)
-                    {
-                        fold.AddFolderDetails(fp.parent_path().string(), "", foldersize, now, false);
-                    }
-                    */
-                }
-
-                for (string f : folderlist)
-                {
-                    bool exists = false;
-                    lastmodified = DateTime();
-                    lastwritetime = DateTime();
-                    if (fold.FolderExists(f, fullpathfolder))
-                    {
-                        DateTime lastchecked;
-                        string foldercategory;
-                        exists = true;
-                        fold.GetFolderDetails(f, foldercategory, fldrsize, lastchecked, lastmodified);
-                    }
-
-                    DateTime lastwritetime = DriveOperations::GetLastWriteTime(fullpath);
-                    if ((lastwritetime >= lastmodified) || (!exists))
-                    {
-                        nextitemtoprocess.AddPathToScanQueue(f, ScanPriority::MED);
-
-                        // cout << "Adding to scan queue " << f << endl;
-                    }
-                    fold.AddFolderDetails(f, "", 0, lastwritetime, true);
-                    FolderManager::GetInstance().AddChildFolder(fullpath, fs::path(f).filename().string());
-                }
+                cout << "Number of items in queue: " << nextitemtoprocess.GetQueueSize() << endl;
+                cout << "Number of folders: " << fold.GetCount() << endl;
+                cout << "Number of files: " << Files::GetInstance().GetCount() << endl;
             }
-
-            cout << "Number of items in queue: " << nextitemtoprocess.GetQueueSize() << endl;
-            cout << "Number of folders: " << fold.GetCount() << endl;
-            cout << "Number of files: " << Files::GetInstance().GetCount() << endl;
-
         }
         catch (exception& e)
         {

@@ -253,3 +253,9 @@ void Folders::WriteToDisk()
 	Operations op(::DBNAME);
 	op.WriteFoldersToDisk(_folders);
 }
+
+void Folders::GetFolderExclusions(vector<string> &folderExclusions)
+{
+	Operations op(::DBNAME);
+	op.LoadFolderExclusions(folderExclusions);
+}
