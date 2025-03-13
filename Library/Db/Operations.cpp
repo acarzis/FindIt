@@ -209,7 +209,6 @@ void Operations::InsertDefaultTableData()
     }
 }
 
-[[maybe_unused]]
 void Operations::DropTableData()
 {
     try

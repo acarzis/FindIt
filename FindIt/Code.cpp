@@ -28,10 +28,6 @@ void Init()
 {
     drives = DriveOperations::getListOfDrives();
 
-    // test code :    
-    // Operations test("D:\\EF_SQLite.db");
-
-
     Drives d = Drives::GetInstance();
     d.Load();
     d.GetDriveList(driveList);
@@ -39,10 +35,9 @@ void Init()
     ToScanQueue& toscanqueue = ToScanQueue::GetInstance();
 
     // omit while testing:
-    // toscanqueue.Load();
-    // Folders::GetInstance().Load();
-    // Files::GetInstance().Load();
-
+    toscanqueue.Load();
+    Folders::GetInstance().Load();
+    Files::GetInstance().Load();
 
     Categories& categories = Categories::GetInstance();
     categories.Load();
@@ -55,12 +50,7 @@ void Init()
     }
 
 
-    // testing code: 
-    // toscanqueue.AddPathToScanQueue(DriveOperations::UNCPath("Z:"), 2);
-    // toscanqueue.AddPathToScanQueue("c:\\AMD\\AMD-Software-Adrenalin-Edition-24.2.1-combined-MinimalSetup-240223_web", 2);
-
-
-    // below should be refreshed every hour
+    // Consider: below should be refreshed every hour
     for (list<Category>::const_iterator it = categoryList.begin(); it != categoryList.end(); ++it)
     {
         Category c = *it;

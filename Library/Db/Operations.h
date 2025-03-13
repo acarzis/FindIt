@@ -17,11 +17,11 @@ class Operations : IDatabase
 
 	void CreateDbStructure();
 	void InsertDefaultTableData();
-	void DropTableData();
 
 public:
 	Operations(string dbname);
 	void BackupDatabase();
+	void DropTableData();
 
 	// Categories table
 	void LoadCategories(list<Category> &categories) override;

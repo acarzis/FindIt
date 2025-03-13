@@ -72,10 +72,11 @@ int main()
 
 				count = 0;
 				Operations op(::DBNAME);
+				op.BackupDatabase();
+				op.DropTableData();
 				ToScanQueue::GetInstance().WriteToDisk();
 				Folders::GetInstance().WriteToDisk();
 				Files::GetInstance().WriteToDisk();
-				op.BackupDatabase();
 			}
 		}
 
