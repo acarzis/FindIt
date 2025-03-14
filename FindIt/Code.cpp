@@ -180,7 +180,7 @@ void TimerJob()
                 if ((lastwritetime >= lastmodified) || (!exists))
                 {
                     list<string> filelist;
-                    DriveOperations::EnumerateFiles(fullpath, filelist);
+                    DriveOperations::EnumerateFiles(fullpath, filelist);    // format: C:.GamingRoot
 
                     uintmax_t filelistSize = 0;
                     for (string f : filelist)
@@ -293,7 +293,7 @@ void TimerJob()
         }
         catch (exception& e)
         {
-            cout << "Exception while processing folder  " << fullpath << " " << e.what() << endl;
+            cout << "Exception while processing folder " << fullpath << " - " << e.what() << endl;
         }
 
         // add the folder's category if available

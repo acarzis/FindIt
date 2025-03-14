@@ -62,6 +62,48 @@ TEST(FolderManager, EnumerateFolders)
 
 }
 
+TEST(FolderManager, EnumerateFoldersb)
+{
+	FolderManager& fm = FolderManager::GetInstance();
+	Folders& f = Folders::GetInstance();
+	f.AddFolder("D:Images40\\child1", "", 0);
+	f.AddFolder("D:Images41\\child2", "", 0);
+	f.AddFolder("D:Images42\\child3", "", 0);
+	f.AddFolder("D:Images42\\child4", "", 0);
+	fm.AddChildFolder("D:Images40", "child1");
+	fm.AddChildFolder("D:Images41", "child2");
+	fm.AddChildFolder("D:Images42", "child3");
+	fm.AddChildFolder("D:Images42", "child4");
+
+	Files& files = Files::GetInstance();
+	files.AddFile("D:Images40", "testfile1.txt", "", "", 0);		// calls FolderManager::AddFile()
+	files.AddFile("D:Images40", "testfile2.txt", "", "", 0);
+	files.AddFile("D:Images41", "testfile3.txt", "", "", 0);
+	files.AddFile("D:Images41", "testfile4.txt", "", "", 0);
+	files.AddFile("D:Images41", "testfile5.txt", "", "", 0);
+	files.AddFile("D:Images42", "testfile6.txt", "", "", 0);
+	files.AddFile("D:Images42", "testfile7.txt", "", "", 0);
+	files.AddFile("D:Images42", "testfile8.txt", "", "", 0);
+	files.AddFile("D:Images42", "testfile9.txt", "", "", 0);
+
+	list<string> folderlist;
+	fm.EnumerateFolders("D:Images40", folderlist);
+	ASSERT_EQ(1, folderlist.size());
+
+	folderlist.clear();
+	fm.EnumerateFolders("D:Images42", folderlist);
+	ASSERT_EQ(2, folderlist.size());
+
+	list<string> fileslist;
+	fm.EnumerateFiles("D:Images40", fileslist);
+	ASSERT_EQ(2, fileslist.size());
+
+	fileslist.clear();
+	fm.EnumerateFiles("D:Images41", fileslist);
+	ASSERT_EQ(3, fileslist.size());
+
+}
+
 TEST(FolderManager, EnumerateFiles)
 {
 }

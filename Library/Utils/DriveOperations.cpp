@@ -25,7 +25,8 @@ void DriveOperations::EnumerateFolders(std::string fullpath, std::list<std::stri
         {
             if (is_directory(itr->path()))
             {
-                folderlist.push_back(itr->path().string());
+                string folder = itr->path().string();
+                folderlist.push_back(folder);
             }
         }
     }
@@ -44,6 +45,7 @@ void DriveOperations::EnumerateFiles(string fullpath, list<string>& filelist)
         {
             if (!is_directory(itr->path()))
             {
+                string filename = itr->path().string();
                 filelist.push_back(itr->path().string());
             }
         }

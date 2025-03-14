@@ -43,7 +43,7 @@ void FolderManager::AddFile(string folderfullpath, string filename)
 	// ** TO DO ***: Improve this.Don't allow duplicate file entries.
 
 	string hash = SHA256HashString(folderfullpath);
-	fs::path absolutePath = boost::filesystem::absolute(fs::path(filename), fs::path(folderfullpath));
+	fs::path absolutePath = fs::path(folderfullpath) / fs::path(filename);
 	string filehash = SHA256HashString(absolutePath.string());
 
 	auto it = _filelist.find(hash);
@@ -64,7 +64,7 @@ void FolderManager::AddFile(string folderfullpath, string filename)
 void FolderManager::AddChildFolder(string folderfullpath, string subfoldername)
 {
 	string hash = SHA256HashString(folderfullpath);
-	fs::path absolutePath = boost::filesystem::absolute(fs::path(subfoldername), fs::path(folderfullpath));
+	fs::path absolutePath = fs::path(folderfullpath) / fs::path(subfoldername);
 	string subfolderhash = SHA256HashString(absolutePath.string());
 
 	auto it = _folderlist.find(hash);
@@ -99,10 +99,8 @@ void FolderManager::EnumerateFolders(string fullpath, list<string>& folderlistfu
 		{
 			// get subfolder name from sub-foldername hash
 			string subfoldername = Folders::GetInstance().GetFullPath(subfoldernamehash);
-			// fs::path sfname(subfoldername);
-			// subfoldername = sfname.filename().string();
 
-			fs::path absolutePath = boost::filesystem::absolute(fs::path(subfoldername), fs::path(fullpath));
+			fs::path absolutePath = fs::path(fullpath) / fs::path(subfoldername) ;
 			folderlistfullpath.push_back(absolutePath.string());			// subfoldername);
 		}
 	}
@@ -122,7 +120,7 @@ void FolderManager::EnumerateFiles(string fullpath, list<string>& filelistfullpa
 		{
 			string filename = Files::GetInstance().GetFileName(fullpathhash);
 
-			fs::path absolutePath = boost::filesystem::absolute(fs::path(filename), fs::path(fullpath));
+			fs::path absolutePath = fs::path(fullpath) / fs::path(filename);
 			filelistfullpath.push_back(absolutePath.string());						// filename);
 		}
 	}
@@ -142,7 +140,7 @@ int64_t FolderManager::ComputeParentFolderSize(string fullpath)
 		for (string subfoldernamehash : subfolders)
 		{
 			string subfoldername = Folders::GetInstance().GetFullPath(subfoldernamehash);
-			fs::path absolutePath = boost::filesystem::absolute(fs::path(subfoldername), fs::path(fullpath));
+			fs::path absolutePath = fs::path(fullpath) / fs::path(subfoldername);
 
 			Folder foldertemp;
 			Folders::GetInstance().FolderExists(absolutePath.string(), foldertemp);
@@ -156,7 +154,7 @@ int64_t FolderManager::ComputeParentFolderSize(string fullpath)
 			for (string filefullpathhash : files)
 			{
 				fs::path parentfolder(parentpath);
-				fs::path absolutePath = boost::filesystem::absolute(Files::GetInstance().GetFileName(filefullpathhash), parentfolder);
+				fs::path absolutePath = parentfolder / Files::GetInstance().GetFileName(filefullpathhash);
 
 				File temp(absolutePath.string(), 0, "");
 				Files::GetInstance().GetFile(absolutePath.string(), temp);

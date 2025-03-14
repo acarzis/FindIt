@@ -12,7 +12,7 @@ extern std::string DBNAME;
 
 void Files::AddFile(string dirname, string fname, string foldercategory, string filecategory, int64_t filesize)
 {
-	fs::path absolutePath = boost::filesystem::absolute(fs::path(fname), fs::path(dirname));
+	fs::path absolutePath =  fs::path(dirname) / fs::path(fname);
 	string fullpath = absolutePath.string();
 
 	File f(fullpath, filesize, filecategory);
