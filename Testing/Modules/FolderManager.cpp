@@ -112,17 +112,17 @@ TEST(FolderManager, EnumerateFiles)
 TEST(FolderManager, ComputeParentFolderSize)
 {
 	Folders& f = Folders::GetInstance();
-	f.AddFolder("D:\\Images30", "", 35000);
-	f.AddFolder("D:\\Images30\\child1", "", 20000);
-	f.AddFolder("D:\\Images30\\child2", "", 21000);
-	f.AddFolder("D:\\Images30\\child3", "", 22000);
-	f.AddFolder("D:\\Images30\\child4", "", 23000);
+	f.AddFolder("D:Images30", "", 35000);
+	f.AddFolder("D:Images30\\child1", "", 20000);
+	f.AddFolder("D:Images30\\child2", "", 21000);
+	f.AddFolder("D:Images30\\child3", "", 22000);
+	f.AddFolder("D:Images30\\child4", "", 23000);
 
 	Files& files = Files::GetInstance();
-	files.AddFile("D:\\Images30", "testfile1.txt", "", "", 10000);		// calls FolderManager::AddFile()
+	files.AddFile("D:Images30", "testfile1.txt", "", "", 10000);		// calls FolderManager::AddFile()
 
 	FolderManager& fm = FolderManager::GetInstance();
-	int64_t size = fm.ComputeParentFolderSize("D:\\Images30\\child1");
+	int64_t size = fm.ComputeParentFolderSize("D:Images30\\child1");
 	ASSERT_EQ(size, 96000);
 }
 

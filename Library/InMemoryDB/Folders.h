@@ -15,6 +15,7 @@ class Folders : public IFolders
 public:
 	static Folders& GetInstance();
 	void Load();
+	set<Folder>& GetAllFolders();
 	void WriteToDisk();
 	int64_t GetCount();
 	int64_t GetCount(string fullpath);

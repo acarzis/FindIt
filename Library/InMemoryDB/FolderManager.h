@@ -3,6 +3,10 @@
 #include <list>
 #include <map>
 #include <string>
+#include <set>
+#include "../Entities/Folder.h"
+#include "../Entities/File.h"
+
 
 /*
 we want : folder - count of files, count of folders
@@ -31,4 +35,6 @@ public:
 	void EnumerateFolders(string fullpath, list<string>& folderlistfullpath);
 	void EnumerateFiles(string fullpath, list<string>& filelistfullpath);
 	int64_t ComputeParentFolderSize(string fullpath);
+	void PopulateFolderData(set<Folder> &folderset);
+	void PopulateFileData(set<File> &fileset);
 };

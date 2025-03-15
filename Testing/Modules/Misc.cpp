@@ -66,7 +66,7 @@ TEST(Misc, FullPathCreation)
 
     std::string foldername = fs::path(folderpath).parent_path().string();
     std::string filename = fs::path(filepath).filename().string();
-    fs::path absolutePath = boost::filesystem::absolute(fs::path(filepath), fs::path(folderpath));
+    fs::path absolutePath = fs::path(folderpath) / fs::path(filepath);
     string fullpath = absolutePath.string();
     ASSERT_EQ(fullpath, "C:\\Windows\\myfile.txt");
 }

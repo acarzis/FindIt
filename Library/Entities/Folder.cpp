@@ -24,11 +24,6 @@ string Folder::GetFullPathHash() const
 	return _FullPathHash;
 }
 
-string Folder::GetPathHash() const
-{
-	return _PathHash;
-}
-
 string Folder::GetName() const
 {
 	return _Name;

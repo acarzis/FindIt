@@ -36,6 +36,10 @@ void Folders::Load()
 	op.LoadFolders(_folders);
 }
 
+set<Folder>& Folders::GetAllFolders()
+{
+	return _folders;
+}
 
 void Folders::AddFolder(string fullpath, string category, int64_t foldersize)
 {
@@ -238,7 +242,7 @@ string Folders::GetFullPath(string folderhash)
 	std::set<Folder>::const_iterator it = _folders.find(foldertemp);
 	if (it != _folders.end())
 	{
-		fs::path absolutePath = boost::filesystem::absolute(fs::path(it->GetName()), fs::path(it->GetPath()));
+		fs::path absolutePath = fs::path(it->GetPath()) / fs::path(it->GetName());
 		result = absolutePath.string();
 	}
 	else

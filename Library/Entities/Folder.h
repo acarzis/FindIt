@@ -9,7 +9,6 @@ using namespace std;
 class Folder
 {
     string _FullPathHash;
-    string _PathHash;                   // new
     string _Path;
     string _Name;
     string _CategoryName;
@@ -25,7 +24,6 @@ public:
     Folder(string fullpathhash, string name, string path, string lastmodified, string lastchecked, int64_t foldersize, string category);
     bool operator< (const Folder& right) const;
     string GetFullPathHash() const;
-    string GetPathHash() const;
     string GetName() const;
     string GetPath() const;
     string GetCategory() const;

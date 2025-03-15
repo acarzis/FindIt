@@ -37,9 +37,27 @@ void Init()
     ToScanQueue& toscanqueue = ToScanQueue::GetInstance();
 
     // omit while testing:
+    cout << "Loading Queue data" << endl;
     toscanqueue.Load();
+    cout << "Loading Folder data" << endl;
     Folders::GetInstance().Load();
+    cout << "Loading File data" << endl;
     Files::GetInstance().Load();
+
+    string stats = format("Folder size: {}, File size: {}, Queue size: {}", Folders::GetInstance().GetCount(),
+                            Files::GetInstance().GetCount(), toscanqueue.GetQueueSize());
+    cout << stats << endl;
+
+    cout << "Populating Folder Data" << endl;
+    FolderManager::GetInstance().PopulateFolderData(Folders::GetInstance().GetAllFolders());
+    cout << "Populating File Data" << endl;
+    FolderManager::GetInstance().PopulateFileData(Files::GetInstance().GetAllFiles());  // extremely slow process
+
+    cout << "ComputeParentFolderSize: " << FolderManager::GetInstance().ComputeParentFolderSize("C:AMD") << endl;
+
+
+
+
 
     Categories& categories = Categories::GetInstance();
     categories.Load();
@@ -140,8 +158,15 @@ void TimerJob()
             for (Drive drive : driveList)
             {
                 ToScanQueue::GetInstance().AddPathToScanQueue(drive.GetLogicalDriveName(), ScanPriority::MEDHIGH);
-            }
 
+                list<string> folderlist;
+                DriveOperations::EnumerateFolders(drive.GetLogicalDriveName(), folderlist);
+
+                for (string f : folderlist)
+                {
+                    ToScanQueue::GetInstance().AddPathToScanQueue(f, ScanPriority::MED);
+                }
+            }
         }
 
         cout << "processing folder: " << fullpath << endl;

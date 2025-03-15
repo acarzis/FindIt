@@ -3,4 +3,4 @@
 using namespace std;
 
 string		DBNAME					= "D:\\EF_SQLite.db";
-const int	DBPERSISTENCEINTERVAL	= 10000;
+const int	DBPERSISTENCEINTERVAL	= 20000;

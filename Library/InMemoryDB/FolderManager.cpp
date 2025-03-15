@@ -140,10 +140,8 @@ int64_t FolderManager::ComputeParentFolderSize(string fullpath)
 		for (string subfoldernamehash : subfolders)
 		{
 			string subfoldername = Folders::GetInstance().GetFullPath(subfoldernamehash);
-			fs::path absolutePath = fs::path(fullpath) / fs::path(subfoldername);
-
 			Folder foldertemp;
-			Folders::GetInstance().FolderExists(absolutePath.string(), foldertemp);
+			Folders::GetInstance().FolderExists(subfoldername, foldertemp);
 			size += foldertemp.GetFolderSize();
 		}
 
@@ -163,4 +161,27 @@ int64_t FolderManager::ComputeParentFolderSize(string fullpath)
 		}
 	}
 	return size;
+}
+
+void FolderManager::PopulateFolderData(set<Folder> &folderset)
+{
+	for (Folder folder : folderset)
+	{
+		fs::path path(folder.GetPath());
+		fs::path name(folder.GetName());
+
+		if (!name.string().empty())
+		{
+			FolderManager::AddChildFolder(path.string(), name.string());
+		}
+	}
+}
+
+void FolderManager::PopulateFileData(set<File> &fileset)
+{
+	for (File file : fileset)
+	{
+		string folderfullpath = Folders::GetInstance().GetFullPath(file.GetFolderHash());
+		FolderManager::AddFile(folderfullpath, file.GetName());
+	}
 }
