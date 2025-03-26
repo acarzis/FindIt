@@ -14,4 +14,6 @@ Changes from EnumerateFolders project:
 Rather than relying on data being stored and accessed from the file system and the DB, all data is stored in memory/data structures and is accessed from therein during normal operation.
 
 
-Currently working on:  App startup and DB persistence code
+NOTE:
+This project has been abandoned - The performance is not as expected.
+
